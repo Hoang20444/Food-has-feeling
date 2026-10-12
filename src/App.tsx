@@ -9,12 +9,14 @@ import { HandHint } from './components/ui/HandHint'
 import { Header } from './components/ui/Header'
 import { InspectCard } from './components/ui/InspectCard'
 import { LoadingScreen } from './components/ui/LoadingScreen'
+import { MemoryCamera } from './components/ui/MemoryCamera'
 import { PostcardAlbum } from './components/ui/PostcardAlbum'
 import { StoryDialogueToast } from './components/ui/StoryDialogueToast'
 import { WebGLFallback } from './components/ui/WebGLFallback'
 import { KitchenScene } from './scene/KitchenScene'
 import { useGrabState } from './interaction/GrabSystem'
 import { interaction, recordPointerDown, wasDrag } from './state/interactionStore'
+import { useTimeAtmosphere } from './state/timeAtmosphereStore'
 
 function checkWebGLSupport(): boolean {
   try {
@@ -31,8 +33,8 @@ function checkWebGLSupport(): boolean {
 
 export default function App() {
   const [hasWebGL] = useState<boolean>(() => checkWebGLSupport())
-
   const isDragging = useGrabState((s) => s.isDragging)
+  const isCameraMode = useTimeAtmosphere((s) => s.isCameraMode)
 
   if (hasWebGL === false) {
     return <WebGLFallback />
@@ -52,6 +54,7 @@ export default function App() {
         gl={{
           antialias: true,
           powerPreference: 'high-performance',
+          preserveDrawingBuffer: true, // Required for WebGL screenshot capture in Memory Camera
         }}
         onPointerDown={(e) => recordPointerDown(e.clientX, e.clientY)}
         onPointerMissed={(e) => {
@@ -69,21 +72,28 @@ export default function App() {
       {/* Initial load screen */}
       <LoadingScreen />
 
-      {/* Minimal UI Overlay */}
-      <div className="game-ui">
-        <Header />
-        <AwakeningBanner />
-        <HandHint />
-        <StoryDialogueToast />
-        <FriendshipToast />
-        <ControlsHint />
-      </div>
+      {/* Memory Camera Cozy Screenshot Viewfinder */}
+      <MemoryCamera />
 
-      {/* Selected Item Inspection Dock */}
-      <InspectCard />
+      {/* Minimal UI Overlay (hidden during camera mode) */}
+      {!isCameraMode && (
+        <>
+          <div className="game-ui">
+            <Header />
+            <AwakeningBanner />
+            <HandHint />
+            <StoryDialogueToast />
+            <FriendshipToast />
+            <ControlsHint />
+          </div>
 
-      {/* Collectible Postcard Stories Album Modal */}
-      <PostcardAlbum />
+          {/* Selected Item Inspection Dock */}
+          <InspectCard />
+
+          {/* Collectible Postcard Stories Album Modal */}
+          <PostcardAlbum />
+        </>
+      )}
     </main>
   )
 }

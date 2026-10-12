@@ -422,5 +422,170 @@ export const soundEffects = {
     osc.start(now)
     osc.stop(now + 0.045)
   },
+
+  /** Delicate morning bird chirps */
+  playMorningBirds: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    const pitches = [1975, 2349, 2793, 2349] // B6, D7, F7, D7
+    pitches.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = now + idx * 0.075
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, start)
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.15, start + 0.04)
+
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.linearRampToValueAtTime(0.035, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.065)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + 0.07)
+    })
+  },
+
+  /** Soft evening cricket chirps */
+  playEveningCrickets: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    for (let i = 0; i < 3; i++) {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = now + i * 0.06
+
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(4500, start)
+
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.linearRampToValueAtTime(0.02, start + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.045)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + 0.05)
+    }
+  },
+
+  /** Cozy mechanical camera shutter click and film advance */
+  playCameraShutter: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    // Crisp shutter snap
+    const snap = ctx.createOscillator()
+    const snapGain = ctx.createGain()
+    snap.type = 'triangle'
+    snap.frequency.setValueAtTime(1200, now)
+    snap.frequency.exponentialRampToValueAtTime(180, now + 0.035)
+
+    snapGain.gain.setValueAtTime(0.12, now)
+    snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
+
+    snap.connect(snapGain)
+    snapGain.connect(ctx.destination)
+    snap.start(now)
+    snap.stop(now + 0.045)
+
+    // Secondary mechanical click
+    const click = ctx.createOscillator()
+    const clickGain = ctx.createGain()
+    click.type = 'square'
+    click.frequency.setValueAtTime(800, now + 0.06)
+    click.frequency.exponentialRampToValueAtTime(200, now + 0.09)
+
+    clickGain.gain.setValueAtTime(0.06, now + 0.06)
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1)
+
+    click.connect(clickGain)
+    clickGain.connect(ctx.destination)
+    click.start(now + 0.06)
+    click.stop(now + 0.11)
+
+    // Soft whirring film advance
+    const whir = ctx.createOscillator()
+    const whirGain = ctx.createGain()
+    whir.type = 'sine'
+    whir.frequency.setValueAtTime(320, now + 0.12)
+    whir.frequency.linearRampToValueAtTime(480, now + 0.3)
+
+    whirGain.gain.setValueAtTime(0.001, now + 0.12)
+    whirGain.gain.linearRampToValueAtTime(0.03, now + 0.18)
+    whirGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35)
+
+    whir.connect(whirGain)
+    whirGain.connect(ctx.destination)
+    whir.start(now + 0.12)
+    whir.stop(now + 0.36)
+  },
+
+  /** Nurturing purr / warm heart flutter when comforting a friend */
+  playCarePurr: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    // Warm chord (C5, G5, C6) rising gently
+    const freqs = [523.25, 783.99, 1046.5]
+    freqs.forEach((freq) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, now)
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.08, now + 0.3)
+
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(0.045, now + 0.08)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.52)
+    })
+  },
+
+  /** Magical starry chime sweep when brushing away a small mess */
+  playCleanSparkle: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    // Rising pentatonic harp sweep
+    const sweep = [659.25, 783.99, 987.77, 1318.51, 1567.98] // E5, G5, B5, E6, G6
+    sweep.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = now + idx * 0.05
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, start)
+
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.linearRampToValueAtTime(0.05, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.28)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + 0.3)
+    })
+  },
 }
+
 

@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
-import { Shape } from 'three'
+import { Color, MeshStandardMaterial, Shape } from 'three'
 import { ROOM_BOUNDS, WINDOW } from '../../config/scene'
+import { useTimeAtmosphere } from '../../state/timeAtmosphereStore'
+import { useWorldMemoryStore } from '../../state/worldMemoryStore'
 import { materials } from '../materials'
 import { Block } from '../primitives'
 
@@ -11,9 +13,13 @@ const { width: W, height: H } = WINDOW
 /**
  * The window above the sink — the scene's focal point.
  *
- * The "outside" is a small layered, softly-lit diorama painted onto the wall
- * (sky, sun, cloud, two rolling hills and a tree), framed by chunky porcelain
- * trim, a scalloped strawberry valance and a sill with a little herb pot.
+ * Responds dynamically to Morning, Afternoon, and Evening:
+ * - Morning: Crisp blue sky, warm sun, puffy white cloud.
+ * - Afternoon: Golden amber sunset sky, warm peach sun.
+ * - Evening: Deep dusky twilight sky, glowing crescent moon, and sparkling stars.
+ *
+ * Also displays the "Berry Window Blossom" memory decoration when Berry's
+ * favorite spot is the window sill!
  */
 export function KitchenWindow() {
   const centerY = WINDOW.bottomY + H / 2
@@ -39,24 +45,109 @@ function makeHill(leftY: number, peakX: number, peakY: number, rightY: number) {
   return s
 }
 
+// Dedicated time-of-day sky materials
+const afternoonSkyMat = new MeshStandardMaterial({
+  color: '#f8c291',
+  emissive: new Color('#f8c291'),
+  emissiveIntensity: 0.75,
+  roughness: 1,
+})
+const afternoonSkyLowMat = new MeshStandardMaterial({
+  color: '#e77f67',
+  emissive: new Color('#e77f67'),
+  emissiveIntensity: 0.7,
+  roughness: 1,
+})
+const afternoonSunMat = new MeshStandardMaterial({
+  color: '#f19066',
+  emissive: new Color('#f19066'),
+  emissiveIntensity: 0.9,
+  roughness: 1,
+})
+
+const eveningSkyMat = new MeshStandardMaterial({
+  color: '#222538',
+  emissive: new Color('#222538'),
+  emissiveIntensity: 0.8,
+  roughness: 1,
+})
+const eveningSkyLowMat = new MeshStandardMaterial({
+  color: '#343854',
+  emissive: new Color('#343854'),
+  emissiveIntensity: 0.65,
+  roughness: 1,
+})
+const eveningMoonMat = new MeshStandardMaterial({
+  color: '#fff3cd',
+  emissive: new Color('#fff3cd'),
+  emissiveIntensity: 0.95,
+  roughness: 0.4,
+})
+const starMat = new MeshStandardMaterial({
+  color: '#ffffff',
+  emissive: new Color('#ffffff'),
+  emissiveIntensity: 1,
+  roughness: 0.2,
+})
+
 function WindowView() {
+  const time = useTimeAtmosphere((s) => s.current)
   const farHill = useMemo(() => makeHill(-0.02, -0.3, 0.12, -0.14), [])
   const nearHill = useMemo(() => makeHill(-0.3, 0.35, -0.12, -0.24), [])
 
-  // Everything sits a few millimetres in front of the wall, layered back to front.
+  const isAfternoon = time === 'afternoon'
+  const isEvening = time === 'evening'
+
+  const skyMaterial = isEvening ? eveningSkyMat : isAfternoon ? afternoonSkyMat : materials.sky
+  const skyLowMaterial = isEvening ? eveningSkyLowMat : isAfternoon ? afternoonSkyLowMat : materials.skyLow
+
   return (
     <group position-z={0.004}>
-      <mesh material={materials.sky} userData={{ shadow: 'receive' }}>
+      {/* Background sky plane */}
+      <mesh material={skyMaterial} userData={{ shadow: 'receive' }}>
         <planeGeometry args={[W, H]} />
       </mesh>
-      <mesh position={[0, -H * 0.3, 0.001]} material={materials.skyLow} userData={{ shadow: 'receive' }}>
+      <mesh position={[0, -H * 0.3, 0.001]} material={skyLowMaterial} userData={{ shadow: 'receive' }}>
         <planeGeometry args={[W, H * 0.4]} />
       </mesh>
-      <mesh position={[0.42, 0.3, 0.002]} material={materials.sun} userData={{ shadow: 'none' }}>
-        <circleGeometry args={[0.15, 20]} />
-      </mesh>
 
-      {/* A puffy low-poly cloud */}
+      {/* Sun / Moon celestial body */}
+      {isEvening ? (
+        // Gentle crescent moon & stars in evening
+        <group position={[0.42, 0.32, 0.002]}>
+          <mesh material={eveningMoonMat}>
+            <circleGeometry args={[0.13, 24]} />
+          </mesh>
+          {/* Moon shadow cut for crescent shape */}
+          <mesh position={[-0.045, 0.025, 0.0005]} material={eveningSkyMat}>
+            <circleGeometry args={[0.11, 24]} />
+          </mesh>
+          {/* Little twinkling diamond stars */}
+          <group position={[-0.9, 0.05, 0]}>
+            {[
+              [-0.1, 0.06, 0.022],
+              [0.15, -0.04, 0.018],
+              [0.35, 0.08, 0.02],
+              [-0.25, -0.08, 0.016],
+            ].map(([sx, sy, sz], idx) => (
+              <mesh key={idx} position={[sx, sy, 0.001]} material={starMat} scale={[sz, sz, sz]}>
+                <octahedronGeometry args={[1, 0]} />
+              </mesh>
+            ))}
+          </group>
+        </group>
+      ) : (
+        // Morning or Afternoon sun
+        <mesh
+          position={isAfternoon ? [0.35, 0.22, 0.002] : [0.42, 0.3, 0.002]}
+          material={isAfternoon ? afternoonSunMat : materials.sun}
+          userData={{ shadow: 'none' }}
+        >
+          <circleGeometry args={[isAfternoon ? 0.17 : 0.15, 20]} />
+        </mesh>
+      )}
+
+      {/* Low-poly cloud */}
       <group position={[-0.42, 0.38, 0.004]} scale={[1, 1, 0.25]}>
         {(
           [
@@ -65,7 +156,12 @@ function WindowView() {
             [0.13, -0.01, 0.08],
           ] as const
         ).map(([x, y, r]) => (
-          <mesh key={x} position={[x, y, 0]} material={materials.cloud} userData={{ shadow: 'none' }}>
+          <mesh
+            key={x}
+            position={[x, y, 0]}
+            material={isEvening ? eveningSkyLowMat : materials.cloud}
+            userData={{ shadow: 'none' }}
+          >
             <icosahedronGeometry args={[r, 1]} />
           </mesh>
         ))}
@@ -95,13 +191,11 @@ function WindowFrame() {
   const z = FRAME_DEPTH / 2
   return (
     <group>
-      {/* Outer frame */}
       <Block size={[W + FRAME * 2, FRAME, FRAME_DEPTH]} radius={0.02} position={[0, H / 2 + FRAME / 2, z]} material={materials.porcelain} />
       <Block size={[W + FRAME * 2, FRAME, FRAME_DEPTH]} radius={0.02} position={[0, -H / 2 - FRAME / 2, z]} material={materials.porcelain} />
       <Block size={[FRAME, H, FRAME_DEPTH]} radius={0.02} position={[-W / 2 - FRAME / 2, 0, z]} material={materials.porcelain} />
       <Block size={[FRAME, H, FRAME_DEPTH]} radius={0.02} position={[W / 2 + FRAME / 2, 0, z]} material={materials.porcelain} />
 
-      {/* Mullions */}
       <Block size={[0.045, H, 0.05]} radius={0.012} position={[0, 0, 0.03]} material={materials.porcelain} />
       <Block size={[W, 0.045, 0.05]} radius={0.012} position={[0, H * 0.12, 0.03]} material={materials.porcelain} />
     </group>
@@ -140,10 +234,59 @@ function Sill() {
   const sillH = 0.06
   const sillY = -H / 2 - FRAME + sillH / 2 - 0.01
   const sillTop = sillY + sillH / 2
+
+  // World Memory Decoration: Sprouted strawberry flower if Berry loves the window!
+  const hasBerryBlossom = useWorldMemoryStore((s) => Boolean(s.unlockedDecorations.berry_window_blossom))
+
   return (
     <group>
       <Block size={[W + 0.36, sillH, 0.22]} radius={0.02} position={[0, sillY, 0.11]} material={materials.porcelain} />
       <HerbPot position={[W / 2 - 0.12, sillTop, 0.12]} />
+
+      {/* Emotional World Memory decoration on window sill */}
+      {hasBerryBlossom && <BerryWindowBlossom position={[-W / 2 + 0.2, sillTop, 0.12]} />}
+    </group>
+  )
+}
+
+/**
+ * A sweet little sprouted white strawberry blossom in a tiny porcelain cup.
+ * Sprouts naturally when the kitchen remembers Berry spent cozy time by the window.
+ */
+function BerryWindowBlossom({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position} scale={[0.7, 0.7, 0.7]}>
+      {/* Tiny thimble pot */}
+      <mesh position-y={0.03} material={materials.porcelain}>
+        <cylinderGeometry args={[0.032, 0.024, 0.06, 10]} />
+      </mesh>
+      {/* Soil */}
+      <mesh position-y={0.058} material={materials.cocoa}>
+        <cylinderGeometry args={[0.028, 0.028, 0.008, 10]} />
+      </mesh>
+      {/* Tender stem */}
+      <mesh position={[0, 0.08, 0]} material={materials.leaf}>
+        <cylinderGeometry args={[0.004, 0.004, 0.05, 6]} />
+      </mesh>
+      {/* Strawberry Flower: 5 tiny white petals */}
+      <group position={[0, 0.11, 0]} rotation-x={-0.2}>
+        {Array.from({ length: 5 }, (_, i) => {
+          const angle = (i * Math.PI * 2) / 5
+          return (
+            <mesh
+              key={i}
+              position={[Math.cos(angle) * 0.016, Math.sin(angle) * 0.016, 0]}
+              material={materials.porcelain}
+            >
+              <sphereGeometry args={[0.01, 8, 8]} />
+            </mesh>
+          )
+        })}
+        {/* Golden pistil center */}
+        <mesh position={[0, 0, 0.004]} material={materials.butterDeep}>
+          <sphereGeometry args={[0.008, 8, 8]} />
+        </mesh>
+      </group>
     </group>
   )
 }

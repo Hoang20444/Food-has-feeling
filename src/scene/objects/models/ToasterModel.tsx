@@ -4,6 +4,7 @@ import { MathUtils, type Group } from 'three'
 import { materials } from '../../materials'
 import { Block } from '../../primitives'
 import { useKitchenState } from '../../../state/kitchenState'
+import { useTimeAtmosphere } from '../../../state/timeAtmosphereStore'
 
 const W = 0.42
 const H = 0.28
@@ -12,16 +13,23 @@ const BASE = 0.025
 
 /**
  * A playful retro toaster that feels alive:
- * - Gentle idle breathing pulse.
- * - Playful hop, bouncy lever motion, and peeking golden toast when interacted with.
+ * - Daily Routines:
+ *   - Morning: energetic, lively breathing, toast peeking eagerly out of the slots.
+ *   - Afternoon: contented idling, gentle warm breathing.
+ *   - Evening: sleepy slouch, lever relaxed downward, toast tucked snug inside.
+ * - Playful hop, bouncy lever motion, and popping toast on interaction.
  */
 export function ToasterModel() {
   const isPopped = useKitchenState((s) => s.toasterPopped)
+  const time = useTimeAtmosphere((s) => s.current)
+
   const groupRef = useRef<Group>(null)
   const leverRef = useRef<Group>(null)
   const toastRef = useRef<Group>(null)
 
   const cy = BASE + H / 2
+  const isMorning = time === 'morning'
+  const isEvening = time === 'evening'
 
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime
@@ -30,9 +38,12 @@ export function ToasterModel() {
     const toast = toastRef.current
     if (!group || !lever || !toast) return
 
-    // Gentle idle breathing
-    const idleScaleY = 1 + Math.sin(t * 2) * 0.012
-    const idleScaleXZ = 1 - Math.sin(t * 2) * 0.006
+    // Breathing speed & amplitude depends on time of day
+    const breathSpeed = isEvening ? 1.1 : isMorning ? 2.8 : 2.0
+    const breathAmp = isEvening ? 0.006 : isMorning ? 0.016 : 0.012
+
+    const idleScaleY = 1 + Math.sin(t * breathSpeed) * breathAmp
+    const idleScaleXZ = 1 - Math.sin(t * breathSpeed) * (breathAmp * 0.5)
 
     if (isPopped) {
       // Playful spring hop & wiggle
@@ -52,9 +63,12 @@ export function ToasterModel() {
       group.rotation.z = MathUtils.damp(group.rotation.z, 0, 10, delta)
       group.scale.set(idleScaleXZ, idleScaleY, idleScaleXZ)
 
-      lever.position.y = MathUtils.damp(lever.position.y, 0, 8, delta)
-      // Toast rests slightly peeking
-      toast.position.y = MathUtils.damp(toast.position.y, 0.01, 8, delta)
+      // Routine-based lever and toast resting positions
+      const restingLeverY = isEvening ? -0.018 : isMorning ? 0.005 : 0
+      const restingToastY = isEvening ? -0.012 : isMorning ? 0.025 + Math.sin(t * 2) * 0.004 : 0.01
+
+      lever.position.y = MathUtils.damp(lever.position.y, restingLeverY, 8, delta)
+      toast.position.y = MathUtils.damp(toast.position.y, restingToastY, 8, delta)
     }
   })
 
@@ -99,16 +113,15 @@ export function ToasterModel() {
       <mesh position={[W / 2 + 0.005, cy + 0.03, 0]} material={materials.steelDark}>
         <boxGeometry args={[0.012, 0.14, 0.03]} />
       </mesh>
-      <group ref={leverRef} position={[W / 2 + 0.03, cy + 0.06, 0]}>
-        <Block size={[0.05, 0.035, 0.08]} radius={0.012} material={materials.strawberry} />
+      <group ref={leverRef} position={[W / 2 + 0.022, cy + 0.05, 0]}>
+        <mesh material={materials.strawberry}>
+          <boxGeometry args={[0.035, 0.018, 0.045]} />
+        </mesh>
       </group>
 
-      {/* Browning dial */}
-      <mesh position={[0.11, BASE + 0.08, D / 2 + 0.006]} rotation-x={Math.PI / 2} material={materials.porcelain}>
-        <cylinderGeometry args={[0.028, 0.028, 0.02, 12]} />
-      </mesh>
-      <mesh position={[0.11, BASE + 0.08, D / 2 + 0.018]} material={materials.strawberry}>
-        <boxGeometry args={[0.006, 0.02, 0.004]} />
+      {/* Retro dial knob */}
+      <mesh position={[0, cy - 0.05, D / 2 + 0.006]} rotation-x={Math.PI / 2} material={materials.charcoal}>
+        <cylinderGeometry args={[0.032, 0.032, 0.012, 16]} />
       </mesh>
     </group>
   )

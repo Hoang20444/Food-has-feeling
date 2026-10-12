@@ -1194,4 +1194,364 @@ html, body, #root {
   }
 }
 
+/* ==========================================================================
+   Phase 4: The Kitchen Remembers You Styles
+   ========================================================================== */
+
+/* Time of Day Switcher Button in Header */
+.game-header__badge.is-time-btn {
+  background: rgba(162, 210, 255, 0.35);
+  border: 1.5px solid #82b9e8;
+  color: #1f507e;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-header__badge.is-time-btn:hover {
+  background: #a2d2ff;
+  color: #123d64;
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 4px 12px rgba(130, 185, 232, 0.4);
+}
+
+/* Memory Camera Button in Header */
+.game-header__badge.is-camera-btn {
+  background: rgba(255, 200, 221, 0.4);
+  border: 1.5px solid #e89eb7;
+  color: #7d2645;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-header__badge.is-camera-btn:hover {
+  background: #ffc8dd;
+  color: #631732;
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 4px 12px rgba(232, 158, 183, 0.4);
+}
+
+/* Inspect Dock Button Row & Care Button */
+.inspect-dock__button-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.inspect-dock__care-btn {
+  background: linear-gradient(135deg, #fff2db 0%, #ffe0b2 100%);
+  border: 1.5px solid #f5a623;
+  color: #8c5300;
+  font-family: var(--font-brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 3px 10px rgba(245, 166, 35, 0.22);
+}
+
+.inspect-dock__care-btn:hover {
+  background: #f5a623;
+  color: #ffffff;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 6px 16px rgba(245, 166, 35, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   Memory Camera Viewfinder & Screenshot Mode
+   -------------------------------------------------------------------------- */
+.camera-viewfinder {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Flash Animation when Photo is Taken */
+.camera-viewfinder__flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  z-index: 100;
+  animation: cameraFlash 0.35s ease-out forwards;
+}
+
+@keyframes cameraFlash {
+  0% { opacity: 0.95; }
+  100% { opacity: 0; }
+}
+
+.camera-viewfinder__frame {
+  position: absolute;
+  inset: 24px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  box-shadow: inset 0 0 80px rgba(70, 50, 40, 0.25), 0 0 0 9999px rgba(35, 25, 20, 0.38);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 28px;
+  pointer-events: none;
+}
+
+/* Vintage Viewfinder Corner Brackets */
+.camera-viewfinder__corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-color: rgba(255, 255, 255, 0.85);
+  border-style: solid;
+}
+
+.camera-viewfinder__corner.is-tl {
+  top: 14px;
+  left: 14px;
+  border-width: 3px 0 0 3px;
+  border-top-left-radius: 8px;
+}
+
+.camera-viewfinder__corner.is-tr {
+  top: 14px;
+  right: 14px;
+  border-width: 3px 3px 0 0;
+  border-top-right-radius: 8px;
+}
+
+.camera-viewfinder__corner.is-bl {
+  bottom: 14px;
+  left: 14px;
+  border-width: 0 0 3px 3px;
+  border-bottom-left-radius: 8px;
+}
+
+.camera-viewfinder__corner.is-br {
+  bottom: 14px;
+  right: 14px;
+  border-width: 0 3px 3px 0;
+  border-bottom-right-radius: 8px;
+}
+
+/* Topbar in Camera Mode */
+.camera-viewfinder__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  pointer-events: auto;
+}
+
+.camera-viewfinder__badge {
+  background: rgba(255, 252, 247, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--color-text-main);
+  font-family: var(--font-brand);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.camera-viewfinder__hint {
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.camera-viewfinder__close-btn {
+  background: rgba(255, 252, 247, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid var(--color-wood);
+  color: var(--color-text-main);
+  font-family: var(--font-brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.camera-viewfinder__close-btn:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Bottombar in Camera Mode */
+.camera-viewfinder__bottombar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  pointer-events: auto;
+}
+
+.camera-viewfinder__caption {
+  background: rgba(255, 252, 247, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  padding: 10px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1.5px solid #ded3be;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.camera-viewfinder__title {
+  font-family: var(--font-brand);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #5a4130;
+  letter-spacing: -0.01em;
+}
+
+.camera-viewfinder__sub {
+  font-size: 0.76rem;
+  color: #8c735d;
+  font-style: italic;
+}
+
+/* Shutter Button */
+.camera-viewfinder__shutter-btn {
+  background: linear-gradient(135deg, #e0625a 0%, #c44a42 100%);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-family: var(--font-brand);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(224, 98, 90, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.camera-viewfinder__shutter-btn:hover {
+  transform: scale(1.06) translateY(-2px);
+  box-shadow: 0 12px 30px rgba(224, 98, 90, 0.55), 0 0 0 6px rgba(255, 255, 255, 0.4);
+}
+
+.camera-viewfinder__shutter-btn:active {
+  transform: scale(0.96);
+}
+
+/* Captured Photo Preview Modal */
+.camera-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(45, 30, 24, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: auto;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.camera-preview-modal__card {
+  background: #fbf6ee;
+  border: 3px solid var(--color-wood);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  max-width: 680px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.camera-preview-modal__title {
+  font-family: var(--font-brand);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.camera-preview-modal__img-wrap {
+  width: 100%;
+  max-height: 52vh;
+  display: flex;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(70, 50, 40, 0.18);
+  background: #000;
+}
+
+.camera-preview-modal__img {
+  max-width: 100%;
+  max-height: 52vh;
+  object-fit: contain;
+}
+
+.camera-preview-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.camera-preview-modal__btn {
+  font-family: var(--font-brand);
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.camera-preview-modal__btn.is-save {
+  background: var(--color-strawberry);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(224, 98, 90, 0.35);
+}
+
+.camera-preview-modal__btn.is-save:hover {
+  background: var(--color-strawberry-deep);
+  transform: translateY(-1px);
+}
+
+.camera-preview-modal__btn.is-retake {
+  background: #f1e5d2;
+  color: var(--color-text-main);
+}
+
+.camera-preview-modal__btn.is-retake:hover {
+  background: #e7d8c0;
+}
+
+.camera-preview-modal__btn.is-done {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1.5px solid #d5c4a7;
+}
+
+.camera-preview-modal__btn.is-done:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-text-main);
+}
+
+
 

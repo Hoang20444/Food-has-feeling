@@ -105,24 +105,55 @@ The goal is to create an emotionally resonant, tactile, and visually delightful 
     - Objects acknowledge being held: caring whispers inside 3D labels when picked up (e.g. Mug: *"Warm hands... thank you."*, Berry: *"Wheee! You're so gentle."*).
     - Preserved zero tutorial popups and clean minimalist UI.
 
-### Phase 4: Kitchen Cooking Playground & Narrative (Future)
-- **Goal:** Introduce food items (bread slices, butter, tea bag, honey) with cooking recipes and prep actions.
+### Phase 4: The Kitchen Remembers You (Current Phase — Complete)
+- **Goal:** Make the kitchen feel like a living place that remembers the player. Create an emotional persistent world with daily rhythms, authored routines, nurturing interactions, and cozy memory capture.
+- **Key Deliverables:**
+  - **World Memory System (`worldMemoryStore.ts`):**
+    - Remembers favorite character drop locations (e.g. Berry at window, Mug at table/cooktop, Toaster at placemat).
+    - Remembers favorite character companion pairings without displaying numbers or XP.
+    - Spawns subtle emotional decorations in the world when a character's favorite spot is loved:
+      - Sprouted white strawberry blossom in a tiny pot on the window sill (`BerryWindowBlossom`).
+      - Pastel knitted coaster on the dining table (`mug_cozy_coaster`).
+      - Golden butter dish by the placemat (`toaster_butter_dish`).
+    - Remembers returning player visits and greets them with a tender welcome tagline.
+    - Special dialogue when Berry sits at its favorite window spot: *"The sun always remembers where I sit... thank you."*
+  - **Time Atmosphere System (`timeAtmosphereStore.ts`, `KitchenLighting.tsx`, `KitchenWindow.tsx`):**
+    - Three cozy atmospheric states:
+      - **Morning:** Crisp morning sky, warm sunlight streaming through the window, energetic character idle states, morning bird audio (`playMorningBirds`).
+      - **Afternoon:** Golden honey amber sky, soft long shadows, peaceful calm demeanor.
+      - **Evening:** Dusky indigo twilight sky with glowing crescent moon and twinkling stars; warm overhead dining table pendant lamp and under-cabinet lights glow with cozy amber illumination; soft night crickets audio (`playEveningCrickets`).
+    - Thematic time-of-day switcher button in Header (`☀️ Morning` -> `🌤️ Afternoon` -> `🌙 Evening`).
+  - **Character Daily Routines (`BerryAnimation.ts`, `MugModel.tsx`, `ToasterModel.tsx`):**
+    - Berry: watches outside excitedly in morning, rests peacefully near friends in afternoon, sleepy idle with half-lidded eyes and slow breathing in evening.
+    - Mug: lively tall steam curls in morning, steady warmth in afternoon, tiny calm steam wisp in evening.
+    - Toaster: energetic morning hop with eager peeking toast, calm afternoon, sleepy relaxed lever and snug toast in evening.
+  - **Memory Camera Feature (`MemoryCamera.tsx`):**
+    - Cozy screenshot mode accessed via `📷 Camera` button in header.
+    - Hides all game UI and frames the 3D diorama in a soft postcard viewfinder with corner marks and caption strip.
+    - Direct WebGL canvas capture with high-res postcard border, cream paper texture, and *"Food Has Feelings Memory 🍓"* watermark.
+    - Mechanical camera shutter sound (`playCameraShutter`), flash animation, and Polaroid preview modal with instant download.
+  - **Care Interactions (`CareInteractions.tsx`, `InspectCard.tsx`):**
+    - Nurturing button (`💛 Warm & Comfort` / `💛 Comfort & Nurture`) on inspected characters with soothing purr sound (`playCarePurr`) and heartwarming comfort whispers.
+    - 3 tiny cleanable messes in the diorama: stray table crumb, fallen cooktop tea leaf, and soft dust fluff.
+    - Brushing them away plays a sparkling chime (`playCleanSparkle`) and stars sweep, keeping the kitchen loved and tidy.
+  - **Preserved Systems:** 100% preservation of Phase 1 to Phase 3B features (drag-and-drop, stories engine, postcard album, Web Audio procedural synth, low-poly aesthetics).
 
 ---
 
 ## 5. Acceptance Criteria & Verification Matrix
 
-### Phase 3B: The Little Kitchen Stories Acceptance Matrix
+### Phase 4: The Kitchen Remembers You Acceptance Matrix
 
 | # | Acceptance Criterion | Status | Verification Method |
 |---|---|---|---|
-| 1 | Lightweight story engine reacts to location, companions, and memories | Passed | `storyEngine.ts` & `storyEvents.ts` evaluate spatial pairings naturally upon drop |
-| 2 | Handcrafted story moments trigger without pressing buttons | Passed | Events (e.g. Berry+Mug+Window, Toaster+Plate, Kettle+Mug) trigger on natural placement |
-| 3 | Visual animations communicate emotion before text appears | Passed | `visualReactionDurationMs` delays dialogue, playing hops/steam/wobbles first |
-| 4 | Reusable emotional animations implemented | Passed | `curious_looking`, `sleepy_idle`, `excited_reaction`, `happy_bounce`, `shy_hide` |
-| 5 | Character personality data guides reactions | Passed | `personalities.ts` defines traits and voices for Berry, Mug, Toaster, Radio, Plate, Kettle |
-| 6 | Collectible Postcard Memory Album | Passed | `PostcardAlbum.tsx` displays textured vintage postcards with stamps and story excerpts |
-| 7 | Subtle player presence & cursor tracking | Passed | Berry's head tracks cursor coordinates; objects express care when held (`CARE_NOTES`) |
-| 8 | No technical jargon or game-like point grinding | Passed | Clean storytelling, replaced point badges with `💌 Stories` postcard album |
-| 9 | Preserves all existing features (Drag, Awakening, Web Audio, Models) | Passed | All Phase 1, 2, and 3A systems tested and fully intact |
-| 10 | Production build and linter pass cleanly | Passed | `oxlint`: 0 warnings, 0 errors; `npm run build`: Exit code 0 (built in 2.68s) |
+| 1 | World memory tracks favorite spots, pairings, and returning visits | Passed | `worldMemoryStore.ts` persists to `localStorage`, tracking drops and returning visits |
+| 2 | Subtle persistent world decorations sprout when favorite spots are loved | Passed | Strawberry blossom on window sill, coaster on table, butter dish on placemat |
+| 3 | Time atmosphere system with 3 cozy states (Morning, Afternoon, Evening) | Passed | Sky, celestial body (sun vs crescent moon + stars), lighting, and lamps dynamically transition |
+| 4 | Character daily routines reflect time of day | Passed | Berry, Mug, and Toaster exhibit morning energetic, afternoon calm, and evening sleepy routines |
+| 5 | Memory Camera feature with clean framing and postcard watermark | Passed | `MemoryCamera.tsx` captures canvas with vintage paper border, watermark, and instant download |
+| 6 | Care interactions: warm objects, comfort lonely characters, clean messes | Passed | `CareInteractions.tsx` cleanable messes + `InspectCard.tsx` nurturing comfort whispers & audio purr |
+| 7 | Zero game-like numbers, XP, or stressful simulation gauges | Passed | Pure cozy picture-book feel, warm handwritten captions, no timers or failures |
+| 8 | Preserves all existing features (Drag system, Story engine, Audio, Postcard album) | Passed | All Phase 1–3B systems tested and fully functioning |
+| 9 | Production build and linter pass cleanly | Passed | `oxlint`: 0 warnings, 0 errors across 66 files; `npm run build`: Exit code 0 (2.02s) |
+| 10 | Browser verification of all new features | Passed | Verified in browser session with screenshots: morning, evening, camera, and care |
+

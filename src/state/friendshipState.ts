@@ -4,7 +4,7 @@ import { soundEffects } from '../shared/audio/soundEffects'
 import { characterInteraction } from '../shared/interactions/characterInteraction'
 import { kitchenState } from './kitchenState'
 import { objectPositionsStore, type MovableObjectId } from './objectPositionsStore'
-
+import { worldMemoryStore } from './worldMemoryStore'
 import { storyEngine } from '../story/storyEngine'
 
 export interface FriendshipDiscovery {
@@ -136,13 +136,22 @@ export const friendshipState = {
   ) => {
     friendshipState.recordMovement()
 
+    // Record in World Memory (tracks favorite spots & unlocks gifts)
+    worldMemoryStore.recordPlacement(objectId, zoneId)
+
+    const allPositions = objectPositionsStore.getState()
+    for (const [otherId, pos] of Object.entries(allPositions)) {
+      if (otherId !== objectId && pos.currentZoneId === zoneId) {
+        worldMemoryStore.recordPairing(objectId, otherId)
+      }
+    }
+
     // 1. Check for handcrafted multi-character story moments first
     const storyHandled = storyEngine.evaluatePlacementStory(objectId, zoneId, zoneName)
     if (storyHandled) {
       return
     }
 
-    const allPositions = objectPositionsStore.getState()
     const berryZone = allPositions.berry.currentZoneId
     const mugZone = allPositions.mug.currentZoneId
     const radioZone = allPositions.radio.currentZoneId

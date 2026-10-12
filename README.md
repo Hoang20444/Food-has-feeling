@@ -34,9 +34,15 @@ The player is not just an observer, but the gentle caretaker of this tiny world.
   - *A Place at the Table* (Berry + Plate)
   - *Morning Symphony* (Berry + Radio)
   - *A Glimpse of the World* (Berry admiring the window view)
-- **Collectible Postcard Memory Album**: Zero game numbers or grindy points—memories are preserved as vintage postcards with stamps and gentle story notes.
-- **Subtle Player Presence**: Berry's gaze smoothly follows your cursor, and friends whisper quiet words of comfort when held gently.
-- **Procedural Web Audio Engine**: Zero external audio files—100% synthesized cozy radio static, spring pops, gentle drops, and harmonic chimes.
+- **World Memory & Emotional Persistence**: The kitchen remembers favorite spots, combinations, and returning visits. Loving a character's favorite spot sprouts tender world decorations (a sprouted white strawberry flower on the window sill, a pastel coaster, or a butter dish).
+- **Time Atmosphere System**: Seamlessly switch between three cozy times of day:
+  - ☀️ **Morning**: Crisp sunlight, morning bird songs, and lively character routines.
+  - 🌤️ **Afternoon**: Soft golden honey lighting and peaceful calm.
+  - 🌙 **Evening**: Dusky twilight sky with a crescent moon and twinkling stars; warm overhead dining lamps and counter lights turn on with soft cricket chirps.
+- **Character Daily Routines**: Berry, Mug, and Toaster naturally change their idle animations from energetic morning hops to peaceful afternoons and sleepy evening slumbers.
+- **Memory Camera**: A cozy framing screenshot mode that hides the UI, frames your favorite angle with vintage postcard borders, adds the *"Food Has Feelings Memory 🍓"* watermark, and captures photos with a crisp mechanical shutter.
+- **Care Interactions**: Nurture lonely friends with warm comfort whispers (`💛 Comfort & Nurture`) and brush away tiny messes (stray bread crumbs, fallen tea leaves) with starry sparkles.
+- **Procedural Web Audio Engine**: Zero external audio files—100% synthesized cozy radio static, spring pops, gentle drops, camera shutters, morning birds, night crickets, and harmonic chimes.
 
 ---
 

@@ -5,6 +5,8 @@ import { MathUtils, type Group } from 'three'
 import { useKitchenState } from '../../state/kitchenState'
 import { interaction } from '../../state/interactionStore'
 import { useObjectPosition } from '../../state/objectPositionsStore'
+import { useTimeAtmosphere } from '../../state/timeAtmosphereStore'
+import { useWorldMemoryStore } from '../../state/worldMemoryStore'
 import { grabSystem, useGrabState } from '../../interaction/GrabSystem'
 import { TouchSparkles } from '../../interaction/TouchSparkles'
 import { soundEffects } from '../../shared/audio/soundEffects'
@@ -25,12 +27,13 @@ const INITIAL_TRANSFORM: BerryTransform = {
 /**
  * Berry — The First Living Food Friend.
  *
- * Integrates procedural animation, behavior state machine,
- * Blender model loader fallback, and interactive emotional dialogue.
+ * Integrates procedural animation, daily routines (Morning, Afternoon, Evening),
+ * favorite spot recognition, behavior state machine, and emotional dialogue.
  */
 export function Berry() {
   const isKitchenAwakened = useKitchenState((s) => s.kitchenAwakened)
   const berryState = useCharacterState((s) => s.characters.berry)
+  const timeAtmosphere = useTimeAtmosphere((s) => s.current)
 
   const groupRef = useRef<Group>(null)
   const transformRef = useRef<BerryTransform>({ ...INITIAL_TRANSFORM })
@@ -39,6 +42,10 @@ export function Berry() {
   const isGrabbed = useGrabState((s) => s.grabbedId === 'berry')
   const dragPos = useGrabState((s) => (s.grabbedId === 'berry' ? s.currentDragPos : null))
   const pointerDownCoord = useRef<{ x: number; y: number; time: number } | null>(null)
+
+  const isFavoriteWindowSpot = useWorldMemoryStore(
+    (s) => (s.dropFrequency.berry?.window_sunlight || 0) >= 2,
+  ) && berryPosState.currentZoneId === 'window_sunlight'
 
   // Trigger one-time emergence when the kitchen awakens
   useEffect(() => {
@@ -63,7 +70,7 @@ export function Berry() {
       ? (performance.now() - berryState.reactionStartTime) / 1000
       : 0
 
-    // Compute restrained, smooth procedural animations with subtle cursor presence
+    // Compute restrained, smooth procedural animations with subtle cursor presence and daily routines
     transformRef.current = computeBerryTransforms(
       t,
       delta,
@@ -73,6 +80,8 @@ export function Berry() {
       transformRef.current,
       berryPosState.position,
       state.pointer,
+      timeAtmosphere,
+      isFavoriteWindowSpot,
     )
 
     const tr = transformRef.current
@@ -144,9 +153,22 @@ export function Berry() {
       const duration = performance.now() - pointerDownCoord.current.time
 
       if (dx < 6 && dy < 6 && duration < 350) {
-        // Simple click
         interaction.clearSelection()
-        BerryBehavior.handleClick(berryState.interactionCount)
+
+        // Check if Berry is at favorite window spot
+        if (isFavoriteWindowSpot) {
+          soundEffects.playBerryGiggle()
+          characterInteraction.triggerReaction('berry', 'happy_bounce', {
+            text: 'The sun always remembers where I sit... thank you.',
+            mood: 'Treasured',
+            emoji: '🌸',
+          })
+          setTimeout(() => {
+            characterInteraction.dismissDialogue('berry')
+          }, 4500)
+        } else {
+          BerryBehavior.handleClick(berryState.interactionCount)
+        }
       }
     }
 

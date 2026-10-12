@@ -1,14 +1,29 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { INTERACTABLES } from '../../config/interactables'
 import { interaction, useInteraction } from '../../state/interactionStore'
 import { kitchenState, useKitchenState } from '../../state/kitchenState'
+import { worldMemoryStore } from '../../state/worldMemoryStore'
+import { soundEffects } from '../../shared/audio/soundEffects'
 import { characterInteraction, useCharacterState } from '../../shared/interactions/characterInteraction'
 import { BerryBehavior } from '../../characters/Berry/BerryBehavior'
+
+const CARE_RESPONSES: Record<string, string> = {
+  berry: "I feel safe whenever you're near. Thank you for taking care of me.",
+  mug: "Your hands are so soothing... I feel warm right to the rim.",
+  toaster: "A gentle pat! You really do care about me. I'm not lonely anymore.",
+  kettle: "Ah, thank you for checking on me. Simmering quietly and happily.",
+  plate: "Held with love. I'm ready for our next breakfast together.",
+  radio: "Tuning into the softest morning lullaby just for you.",
+}
 
 export function InspectCard() {
   const selectedId = useInteraction((s) => s.selectedId)
   const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId)
   const berryState = useCharacterState((s) => s.characters.berry)
+
+  const activeTargetId = selectedCharacterId || selectedId
+  const [careTarget, setCareTarget] = useState<{ id: string; message: string } | null>(null)
+  const careWhisper = careTarget && careTarget.id === activeTargetId ? careTarget.message : null
 
   const whisperIndex = useKitchenState((s) => (selectedId ? s.whisperIndices[selectedId] || 0 : 0))
   const isRadioPlaying = useKitchenState((s) => s.radioPlaying)
@@ -28,6 +43,29 @@ export function InspectCard() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedId, selectedCharacterId])
 
+  const handleCareAction = (targetId: string) => {
+    soundEffects.playCarePurr()
+    worldMemoryStore.recordCare()
+    const msg = CARE_RESPONSES[targetId] || 'Your gentle hands bring warmth to the kitchen.'
+    setCareTarget({ id: targetId, message: msg })
+
+    if (targetId === 'berry') {
+      characterInteraction.triggerReaction('berry', 'happy_bounce', {
+        text: msg,
+        mood: 'Loved',
+        emoji: '💛',
+      })
+    } else if (targetId === 'mug') {
+      kitchenState.triggerMug()
+    } else if (targetId === 'toaster') {
+      kitchenState.triggerToaster()
+    } else if (targetId === 'kettle') {
+      kitchenState.triggerKettle()
+    } else if (targetId === 'plate') {
+      kitchenState.triggerPlate()
+    }
+  }
+
   // --- Living Character Selection (Berry) ---
   if (selectedCharacterId === 'berry') {
     const dialogue = berryState.dialogue
@@ -44,17 +82,31 @@ export function InspectCard() {
 
           <div className="inspect-dock__content">
             <h2 className="inspect-dock__title">Berry</h2>
-            <p className="inspect-dock__note">“{dialogue?.text || 'Oh... you found me.'}”</p>
+            <p className="inspect-dock__note">
+              “{careWhisper || dialogue?.text || 'Oh... you found me.'}”
+            </p>
           </div>
 
-          <button
-            type="button"
-            className="inspect-dock__action-btn"
-            onClick={() => BerryBehavior.handleClick(berryState.interactionCount)}
-            aria-label="Talk to Berry"
-          >
-            🍓 Talk to Berry
-          </button>
+          <div className="inspect-dock__button-row">
+            <button
+              type="button"
+              className="inspect-dock__action-btn"
+              onClick={() => BerryBehavior.handleClick(berryState.interactionCount)}
+              aria-label="Talk to Berry"
+            >
+              🍓 Talk to Berry
+            </button>
+
+            <button
+              type="button"
+              className="inspect-dock__care-btn"
+              onClick={() => handleCareAction('berry')}
+              title="Give gentle warmth and comfort"
+              aria-label="Comfort Berry"
+            >
+              💛 Comfort & Nurture
+            </button>
+          </div>
 
           <button
             type="button"
@@ -74,7 +126,7 @@ export function InspectCard() {
   if (!selectedId) return null
 
   const info = INTERACTABLES[selectedId]
-  const currentWhisper = info.whispers[whisperIndex % info.whispers.length] || info.note
+  const currentWhisper = careWhisper || info.whispers[whisperIndex % info.whispers.length] || info.note
 
   const handleAction = () => {
     kitchenState.recordInspection(selectedId)
@@ -91,7 +143,6 @@ export function InspectCard() {
     }
   }
 
-  // Contextual action label
   let actionText = info.actionLabel || 'Interact'
   if (selectedId === 'radio') {
     actionText = isRadioPlaying ? '📻 Turn Off' : '📻 Turn On'
@@ -121,15 +172,27 @@ export function InspectCard() {
           <p className="inspect-dock__note">“{currentWhisper}”</p>
         </div>
 
-        {/* Action button */}
-        <button
-          type="button"
-          className="inspect-dock__action-btn"
-          onClick={handleAction}
-          aria-label={actionText}
-        >
-          {actionText}
-        </button>
+        {/* Action buttons row */}
+        <div className="inspect-dock__button-row">
+          <button
+            type="button"
+            className="inspect-dock__action-btn"
+            onClick={handleAction}
+            aria-label={actionText}
+          >
+            {actionText}
+          </button>
+
+          <button
+            type="button"
+            className="inspect-dock__care-btn"
+            onClick={() => handleCareAction(selectedId)}
+            title="Nurture with gentle care and warmth"
+            aria-label="Comfort item"
+          >
+            💛 Warm & Comfort
+          </button>
+        </div>
 
         {/* Close button */}
         <button

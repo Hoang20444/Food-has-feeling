@@ -6,6 +6,7 @@ import {
   DropZoneVisualizers,
 } from '../interaction/DragVisualizers'
 import { useGrabState } from '../interaction/GrabSystem'
+import { CareInteractions } from './environment/CareInteractions'
 import { KitchenEnvironment } from './environment/KitchenEnvironment'
 import { SunbeamMotes } from './environment/SunbeamMotes'
 import { KitchenLighting } from './lighting/KitchenLighting'
@@ -16,7 +17,7 @@ import { ShadowGroup } from './primitives'
  * The full 3D kitchen scene composition.
  *
  * Combines lighting, environment architecture, interactive kitchen objects,
- * Berry (living character), controlled drop zones, and calibrated orbit camera controls
+ * Berry (living character), controlled drop zones, care interactions, and calibrated orbit camera controls
  * that suspend smoothly whenever the player picks up an object.
  */
 export function KitchenScene() {
@@ -49,6 +50,9 @@ export function KitchenScene() {
 
       {/* Ambient sunbeam dust motes */}
       <SunbeamMotes />
+
+      {/* Care interactions: tidy cleanable messes */}
+      <CareInteractions />
 
       {/* Interactable & Draggable toy items */}
       <InteractableObjects />

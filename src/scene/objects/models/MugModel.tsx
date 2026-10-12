@@ -4,6 +4,7 @@ import type { Group } from 'three'
 import { materials } from '../../materials'
 import { useKitchenState } from '../../../state/kitchenState'
 import { useFriendshipState } from '../../../state/friendshipState'
+import { useTimeAtmosphere } from '../../../state/timeAtmosphereStore'
 
 const HEIGHT = 0.2
 const RADIUS = 0.1
@@ -23,14 +24,23 @@ const STEAM_PARTICLES: SteamParticle[] = [
 
 /**
  * A chunky strawberry mug that feels alive:
- * - Gentle warm steam curls rising rhythmically from the hot tea.
- * - Subtle vibration and shiver when inspected with warmth.
+ * - Daily routines:
+ *   - Morning: Fresh piping hot tea with tall, lively steam curls.
+ *   - Afternoon: Gentle, steady afternoon warmth.
+ *   - Evening: Quiet, sleepy slumber with tiny, gentle steam wisps.
+ * - Leans toward Berry when friendship is active.
+ * - Subtle vibration and shiver when inspected or cared for.
  */
 export function MugModel() {
   const isWarmed = useKitchenState((s) => s.mugWarmed)
   const hasBerryFriendship = useFriendshipState((s) => s.discoveredFriendships.berry_mug_friendship)
+  const time = useTimeAtmosphere((s) => s.current)
+
   const bodyRef = useRef<Group>(null)
   const steamRef = useRef<Group>(null)
+
+  const isMorning = time === 'morning'
+  const isEvening = time === 'evening'
 
   useFrame((state) => {
     const t = state.clock.elapsedTime
@@ -48,18 +58,21 @@ export function MugModel() {
       }
     }
 
-    // Animate steam puffs rising and swaying (leans toward Berry when friends!)
+    // Animate steam puffs rising and swaying based on daily routine
     if (steamRef.current) {
+      const speedMultiplier = isEvening ? 0.5 : isMorning ? 1.25 : 1.0
+      const sizeMultiplier = isEvening ? 0.65 : isMorning ? 1.3 : 1.0
+
       steamRef.current.children.forEach((child, i) => {
         const p = STEAM_PARTICLES[i]
-        const progress = ((t * p.speed + p.yOffset) % 0.25) / 0.25
+        const progress = ((t * p.speed * speedMultiplier + p.yOffset) % 0.25) / 0.25
         child.position.y = progress * 0.22
         // Leans toward Berry if friendship unlocked
         const friendshipLean = hasBerryFriendship ? -0.04 : 0
         child.position.x = Math.sin(t * 2.2 + p.phase) * 0.025 + friendshipLean * progress
         child.position.z = Math.cos(t * 1.8 + p.phase) * 0.02
-        const s = Math.sin(progress * Math.PI) * (isWarmed || hasBerryFriendship ? 1.4 : 1.0)
-        child.scale.setScalar(Math.max(0.01, s))
+        const s = Math.sin(progress * Math.PI) * (isWarmed || hasBerryFriendship ? 1.4 : 1.0) * sizeMultiplier
+        child.scale.setScalar(Math.max(0.008, s))
       })
     }
   })
