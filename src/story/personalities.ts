@@ -1,0 +1,58 @@
+import type { PersonalityProfile } from './types'
+
+export const PERSONALITIES: Record<string, PersonalityProfile> = {
+  berry: {
+    id: 'berry',
+    name: 'Berry',
+    title: 'The First Friend',
+    traits: ['curious', 'shy', 'loves sunlight'],
+    loves: 'Watching the rolling hills through the sunlit window',
+    voiceTone: 'Gentle, timid at first, then blossoming with joyful wonder',
+    idleBehavior: 'Gentle breathing, occasional bashful tilts, seeking morning light',
+  },
+  mug: {
+    id: 'mug',
+    name: 'Mug',
+    title: 'The Caring Cup',
+    traits: ['caring', 'warm', 'attentive'],
+    loves: 'Keeping tea comforting and staying close to companions',
+    voiceTone: 'Soft, soothing, worries about tea going cold, relieved when near friends',
+    idleBehavior: 'Slow rising steam, subtle warm vibrations when touched',
+  },
+  toaster: {
+    id: 'toaster',
+    name: 'Toaster',
+    title: 'The Eager Toaster',
+    traits: ['playful', 'wants attention', 'ticklish'],
+    loves: 'Coiling its springs and waiting for morning bread',
+    voiceTone: 'Excited, slightly anxious about being forgotten, cheerful and springy',
+    idleBehavior: 'Rhythmic spring coil bobs, peeking bread slices, ticklish hops',
+  },
+  radio: {
+    id: 'radio',
+    name: 'Radio',
+    title: 'The Dreamy Dial',
+    traits: ['dreamy', 'melodic', 'nostalgic'],
+    loves: 'Finding quiet frequencies and playing tunes for friends',
+    voiceTone: 'Poetic, gentle lo-fi whispers, hums morning melodies',
+    idleBehavior: 'Glow of frequency needle, subtle speaker throb, soft antenna sway',
+  },
+  plate: {
+    id: 'plate',
+    name: 'Plate',
+    title: 'The Faithful Plate',
+    traits: ['faithful', 'welcoming', 'hospitable'],
+    loves: 'Keeping a warm breakfast place setting ready at the table',
+    voiceTone: 'Courteous, hospitable, patient companion',
+    idleBehavior: 'Porcelain contact wobble, pristine ceramic shine',
+  },
+  kettle: {
+    id: 'kettle',
+    name: 'Kettle',
+    title: 'The Patient Kettle',
+    traits: ['patient', 'watchful', 'steady'],
+    loves: 'Keeping water steaming and ready for honey and tea',
+    voiceTone: 'Calm, grandmotherly warmth, whistles when excited',
+    idleBehavior: 'Gentle simmering rock, rattling lid knob, soft spout steam',
+  },
+}
