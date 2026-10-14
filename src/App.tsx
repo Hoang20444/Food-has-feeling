@@ -10,6 +10,7 @@ import { Header } from './components/ui/Header'
 import { InspectCard } from './components/ui/InspectCard'
 import { LoadingScreen } from './components/ui/LoadingScreen'
 import { MemoryCamera } from './components/ui/MemoryCamera'
+import { NoteModal } from './components/ui/NoteModal'
 import { PostcardAlbum } from './components/ui/PostcardAlbum'
 import { StoryDialogueToast } from './components/ui/StoryDialogueToast'
 import { WebGLFallback } from './components/ui/WebGLFallback'
@@ -92,6 +93,9 @@ export default function App() {
 
           {/* Collectible Postcard Stories Album Modal */}
           <PostcardAlbum />
+
+          {/* Child's Forgotten Promise Note Modal */}
+          <NoteModal />
         </>
       )}
     </main>

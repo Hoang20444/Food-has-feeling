@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { soundEffects } from '../../shared/audio/soundEffects'
 import { useKitchenState } from '../../state/kitchenState'
+import { useMysteryStore } from '../../state/mysteryStore'
 import { storyStore, useStoryStore } from '../../state/storyStore'
 import { timeAtmosphereStore, useTimeAtmosphere, type TimeAtmosphere } from '../../state/timeAtmosphereStore'
 import { useWorldMemoryStore } from '../../state/worldMemoryStore'
@@ -16,6 +17,10 @@ export function Header() {
   const awakened = useKitchenState((s) => s.kitchenAwakened)
   const unlockedPostcards = useStoryStore((s) => s.unlockedPostcards)
   const unlockedCount = Object.keys(unlockedPostcards).length
+
+  const mysteryPhase = useMysteryStore((s) => s.phase)
+  const mysteryClues = useMysteryStore((s) => s.clues)
+  const discoveredCluesCount = Object.values(mysteryClues).filter((c) => c.discovered).length
 
   const timeAtmosphere = useTimeAtmosphere((s) => s.current)
   const welcomeBackMessage = useWorldMemoryStore((s) => s.welcomeBackMessage)
@@ -49,11 +54,27 @@ export function Header() {
           {awakened ? '✨ Awakened' : 'The Kitchen'}
         </span>
 
+        {/* Chapter 1 Mystery Dossier Button */}
+        <button
+          type="button"
+          className="game-header__badge is-mystery-btn"
+          onClick={() => storyStore.openAlbum('mystery')}
+          title="Open Chapter 1: The Song Nobody Remembers"
+          aria-label="Open mystery journal"
+        >
+          🔍{' '}
+          {mysteryPhase === 'chapter_complete'
+            ? 'Ch. 1 Solved'
+            : mysteryPhase === 'revelation'
+              ? '✨ Revelation!'
+              : `Ch. 1: ${discoveredCluesCount}/3 Clues`}
+        </button>
+
         {/* Collectible Postcard Stories Album Button */}
         <button
           type="button"
           className="game-header__badge is-album-btn"
-          onClick={() => storyStore.openAlbum()}
+          onClick={() => storyStore.openAlbum('stories')}
           title="Open Little Kitchen Postcard Stories Album"
           aria-label="Open stories album"
         >

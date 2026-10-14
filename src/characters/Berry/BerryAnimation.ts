@@ -1,6 +1,7 @@
 import { MathUtils } from 'three'
 import type { CharacterReaction, EmergencePhase } from '../../shared/interactions/characterTypes'
 import type { TimeAtmosphere } from '../../state/timeAtmosphereStore'
+import type { BerryEmotionalState } from '../../state/mysteryStore'
 
 export interface BerryTransform {
   position: [number, number, number]
@@ -20,7 +21,7 @@ const SETTLED_POS: [number, number, number] = [0.16, 2.435, -2.80]
 
 /**
  * Calculates smooth, non-conflicting transform values for Berry
- * based on elapsed time, emergence phase, daily routine, and active reaction.
+ * based on elapsed time, emergence phase, daily routine, mystery mood, and active reaction.
  */
 export function computeBerryTransforms(
   time: number,
@@ -33,6 +34,7 @@ export function computeBerryTransforms(
   pointer?: { x: number; y: number },
   timeAtmosphere: TimeAtmosphere = 'morning',
   isFavoriteSpot = false,
+  berryMood: BerryEmotionalState = 'curious',
 ): BerryTransform {
   const next: BerryTransform = {
     position: [...current.position],
@@ -62,10 +64,29 @@ export function computeBerryTransforms(
     targetPos = baseSettledPos
     targetRotY = Math.sin(time * 1.5) * 0.5
   } else {
-    // Settled idle state influenced by daily routine & favorite spot
+    // Settled idle state influenced by daily routine, favorite spot, and mystery chapter mood
     targetPos = baseSettledPos
 
-    if (isFavoriteSpot && timeAtmosphere !== 'evening') {
+    if (berryMood === 'uneasy') {
+      // Freezes and stares toward the clock and counter drawer
+      targetRotY = -0.42
+      next.blushIntensity = 0.45
+    } else if (berryMood === 'hesitant') {
+      // Looks uncertainly between player and diorama
+      targetRotY = 0.15 + Math.sin(time * 1.5) * 0.15
+      next.blushIntensity = 0.75
+    } else if (berryMood === 'emotional') {
+      // Leans forward slightly toward the player in revelation
+      targetPos = [baseSettledPos[0], baseSettledPos[1], baseSettledPos[2] + 0.035]
+      targetRotY = 0.38 + Math.sin(time * 0.8) * 0.03
+      next.blushIntensity = 1.0
+    } else if (berryMood === 'happy') {
+      targetRotY = 0.35 + Math.sin(time * 3) * 0.08
+      next.blushIntensity = 1.0
+    } else if (berryMood === 'peaceful') {
+      targetRotY = 0.2 + Math.sin(time * 0.4) * 0.03
+      next.blushIntensity = 0.7
+    } else if (isFavoriteSpot && timeAtmosphere !== 'evening') {
       // Gazing affectionately toward the window and sun
       targetRotY = -0.25 + Math.sin(time * 0.5) * 0.04
       next.blushIntensity = 1.0
@@ -87,12 +108,39 @@ export function computeBerryTransforms(
     const isEvening = timeAtmosphere === 'evening'
     const isMorning = timeAtmosphere === 'morning'
 
-    const breathSpeed = isEvening ? 1.2 : isMorning ? 2.6 : 1.8
-    const breathAmp = isEvening ? 0.012 : 0.02
+    let breathSpeed = isEvening ? 1.2 : isMorning ? 2.6 : 1.8
+    let breathAmp = isEvening ? 0.012 : 0.02
+
+    if (berryMood === 'uneasy') {
+      breathSpeed = 3.2
+      breathAmp = 0.01
+    } else if (berryMood === 'emotional') {
+      breathSpeed = 1.3
+      breathAmp = 0.024
+    } else if (berryMood === 'peaceful') {
+      breathSpeed = 0.85
+      breathAmp = 0.01
+    }
 
     const breathY = 1 + Math.sin(time * breathSpeed) * breathAmp
     const breathXZ = 1 - Math.sin(time * breathSpeed) * (breathAmp * 0.5)
     next.scale = [breathXZ, breathY, breathXZ]
+
+    // Emotional adjustments to posture and subtle micro-movements
+    if (berryMood === 'uneasy') {
+      // Subtle nervous shiver (very lifelike, restrained)
+      const shiver = Math.sin(time * 22) * 0.0025
+      next.position[0] += shiver
+      next.scale[0] += shiver * 0.5
+      next.scale[2] += shiver * 0.5
+    } else if (berryMood === 'happy') {
+      // Continuous gentle happy bounce
+      const happyBounce = Math.abs(Math.sin(time * 4)) * 0.016
+      next.position[1] += happyBounce
+    } else if (berryMood === 'peaceful') {
+      // Cozy slight slouch
+      next.scale[1] *= 0.94
+    }
 
     // Player cursor presence: gentle head bias tracking cursor
     const pointerLookX = pointer ? MathUtils.clamp(pointer.x * 0.28, -0.3, 0.3) : 0
@@ -107,16 +155,35 @@ export function computeBerryTransforms(
     ]
 
     // Leaf crown sway
-    next.leafRotation = [
-      Math.sin(time * (isEvening ? 0.8 : 1.6)) * (isEvening ? 0.02 : 0.04),
-      Math.sin(time * (isEvening ? 0.6 : 1.2)) * (isEvening ? 0.03 : 0.06),
-      Math.sin(time * (isEvening ? 0.9 : 1.8)) * (isEvening ? 0.02 : 0.05),
-    ]
+    if (berryMood === 'uneasy') {
+      // Crown leaves droop slightly in worry
+      next.leafRotation = [0.06, 0, Math.sin(time * 12) * 0.015]
+    } else if (berryMood === 'happy') {
+      // Joyful leaf fluttering
+      next.leafRotation = [
+        Math.sin(time * 5) * 0.05,
+        Math.sin(time * 6) * 0.1,
+        Math.sin(time * 4) * 0.06,
+      ]
+    } else {
+      next.leafRotation = [
+        Math.sin(time * (isEvening ? 0.8 : 1.6)) * (isEvening ? 0.02 : 0.04),
+        Math.sin(time * (isEvening ? 0.6 : 1.2)) * (isEvening ? 0.03 : 0.06),
+        Math.sin(time * (isEvening ? 0.9 : 1.8)) * (isEvening ? 0.02 : 0.05),
+      ]
+    }
 
-    // Blinking & Sleepy eyes
-    if (isEvening) {
+    // Blinking & Eyes expression
+    if (berryMood === 'peaceful' || isEvening) {
       // Sleepy half-lidded eyes with slow deep blinks
       next.eyeScaleY = 0.32 + Math.sin(time * 1.2) * 0.06
+    } else if (berryMood === 'uneasy' || berryMood === 'hesitant') {
+      // Alert, wide, questioning eyes
+      const blinkCycle = time % 5.0
+      next.eyeScaleY = blinkCycle < 0.1 ? 0.1 : 1.22
+    } else if (berryMood === 'emotional') {
+      // Wide glistening eyes
+      next.eyeScaleY = 1.18
     } else {
       // Natural occasional blinking: blink every 3.8s for 0.14s
       const blinkCycle = time % 3.8

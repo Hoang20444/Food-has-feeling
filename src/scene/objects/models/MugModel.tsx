@@ -2,8 +2,9 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import type { Group } from 'three'
 import { materials } from '../../materials'
-import { useKitchenState } from '../../../state/kitchenState'
 import { useFriendshipState } from '../../../state/friendshipState'
+import { useKitchenState } from '../../../state/kitchenState'
+import { useMysteryStore } from '../../../state/mysteryStore'
 import { useTimeAtmosphere } from '../../../state/timeAtmosphereStore'
 
 const HEIGHT = 0.2
@@ -35,22 +36,29 @@ export function MugModel() {
   const isWarmed = useKitchenState((s) => s.mugWarmed)
   const hasBerryFriendship = useFriendshipState((s) => s.discoveredFriendships.berry_mug_friendship)
   const time = useTimeAtmosphere((s) => s.current)
+  const mysteryPhase = useMysteryStore((s) => s.phase)
 
   const bodyRef = useRef<Group>(null)
   const steamRef = useRef<Group>(null)
 
   const isMorning = time === 'morning'
   const isEvening = time === 'evening'
+  const isUneasyPhase = mysteryPhase === 'something_wrong' || mysteryPhase === 'missing_memory'
 
   useFrame((state) => {
     const t = state.clock.elapsedTime
 
-    // Vibration when touched / inspected or when friendship is active
+    // Vibration when touched / inspected or when friendship is active, or subtle cold shiver
     if (bodyRef.current) {
       if (isWarmed) {
         bodyRef.current.position.x = Math.sin(t * 45) * 0.0035
         bodyRef.current.position.z = Math.cos(t * 40) * 0.003
         bodyRef.current.rotation.y = Math.sin(t * 30) * 0.025
+      } else if (isUneasyPhase) {
+        // Cold subtle chill shiver
+        bodyRef.current.position.x = Math.sin(t * 24) * 0.0012
+        bodyRef.current.position.z = Math.cos(t * 20) * 0.001
+        bodyRef.current.rotation.y = 0
       } else {
         bodyRef.current.position.x = 0
         bodyRef.current.position.z = 0
@@ -58,10 +66,16 @@ export function MugModel() {
       }
     }
 
-    // Animate steam puffs rising and swaying based on daily routine
+    // Animate steam puffs rising and swaying based on daily routine and mystery atmosphere
     if (steamRef.current) {
-      const speedMultiplier = isEvening ? 0.5 : isMorning ? 1.25 : 1.0
-      const sizeMultiplier = isEvening ? 0.65 : isMorning ? 1.3 : 1.0
+      let speedMultiplier = isEvening ? 0.5 : isMorning ? 1.25 : 1.0
+      let sizeMultiplier = isEvening ? 0.65 : isMorning ? 1.3 : 1.0
+
+      if (isUneasyPhase && !isWarmed) {
+        // Steam slows down to a quiet, faint wisp
+        speedMultiplier *= 0.55
+        sizeMultiplier *= 0.45
+      }
 
       steamRef.current.children.forEach((child, i) => {
         const p = STEAM_PARTICLES[i]
@@ -72,7 +86,7 @@ export function MugModel() {
         child.position.x = Math.sin(t * 2.2 + p.phase) * 0.025 + friendshipLean * progress
         child.position.z = Math.cos(t * 1.8 + p.phase) * 0.02
         const s = Math.sin(progress * Math.PI) * (isWarmed || hasBerryFriendship ? 1.4 : 1.0) * sizeMultiplier
-        child.scale.setScalar(Math.max(0.008, s))
+        child.scale.setScalar(Math.max(0.005, s))
       })
     }
   })

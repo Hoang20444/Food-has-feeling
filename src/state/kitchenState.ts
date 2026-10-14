@@ -35,6 +35,8 @@ const initialState: KitchenState = {
     radio: 0,
     kettle: 0,
     plate: 0,
+    clock: 0,
+    drawer: 0,
   },
   reactionCount: 0,
 }

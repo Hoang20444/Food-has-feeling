@@ -5,7 +5,7 @@
  * Later phases (food characters, reactions) can key behaviour off these ids
  * without depending on how the object is rendered.
  */
-export type InteractableId = 'plate' | 'mug' | 'radio' | 'toaster' | 'kettle'
+export type InteractableId = 'plate' | 'mug' | 'radio' | 'toaster' | 'kettle' | 'clock' | 'drawer'
 
 export interface InteractableInfo {
   id: InteractableId

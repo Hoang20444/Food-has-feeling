@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei'
 import { MathUtils, type Group } from 'three'
 import { useKitchenState } from '../../state/kitchenState'
 import { interaction } from '../../state/interactionStore'
+import { useMysteryStore } from '../../state/mysteryStore'
 import { useObjectPosition } from '../../state/objectPositionsStore'
 import { useTimeAtmosphere } from '../../state/timeAtmosphereStore'
 import { useWorldMemoryStore } from '../../state/worldMemoryStore'
@@ -28,12 +29,13 @@ const INITIAL_TRANSFORM: BerryTransform = {
  * Berry — The First Living Food Friend.
  *
  * Integrates procedural animation, daily routines (Morning, Afternoon, Evening),
- * favorite spot recognition, behavior state machine, and emotional dialogue.
+ * favorite spot recognition, mystery chapter emotions, behavior state machine, and emotional dialogue.
  */
 export function Berry() {
   const isKitchenAwakened = useKitchenState((s) => s.kitchenAwakened)
   const berryState = useCharacterState((s) => s.characters.berry)
   const timeAtmosphere = useTimeAtmosphere((s) => s.current)
+  const berryMood = useMysteryStore((s) => s.berryMood)
 
   const groupRef = useRef<Group>(null)
   const transformRef = useRef<BerryTransform>({ ...INITIAL_TRANSFORM })
@@ -70,7 +72,7 @@ export function Berry() {
       ? (performance.now() - berryState.reactionStartTime) / 1000
       : 0
 
-    // Compute restrained, smooth procedural animations with subtle cursor presence and daily routines
+    // Compute restrained, smooth procedural animations with subtle cursor presence, daily routines, and mystery chapter mood
     transformRef.current = computeBerryTransforms(
       t,
       delta,
@@ -82,6 +84,7 @@ export function Berry() {
       state.pointer,
       timeAtmosphere,
       isFavoriteWindowSpot,
+      berryMood,
     )
 
     const tr = transformRef.current

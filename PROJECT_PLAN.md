@@ -138,22 +138,65 @@ The goal is to create an emotionally resonant, tactile, and visually delightful 
     - Brushing them away plays a sparkling chime (`playCleanSparkle`) and stars sweep, keeping the kitchen loved and tidy.
   - **Preserved Systems:** 100% preservation of Phase 1 to Phase 3B features (drag-and-drop, stories engine, postcard album, Web Audio procedural synth, low-poly aesthetics).
 
+### Core Gameplay Redesign: Cozy Psychological Mystery Adventure
+### Chapter 1: "The Song Nobody Remembers" (Current Phase — Complete)
+- **Vision:** Transform FOOD HAS FEELINGS from a passive diorama / toy room into a compelling, tender **Cozy Psychological Mystery Adventure**. The world begins warm, cute, peaceful, and comforting. Gradually, subtle environmental inconsistencies and character behavioral shifts introduce mystery and curiosity about the kitchen's past, leading to an emotional climax decision with dual endings.
+- **Key Deliverables:**
+  - **Deterministic Chapter State Machine (`mysteryStore.ts`):**
+    - 5 Progressive Phases:
+      - `comfort`: Warm diorama exploration; player touches objects and discovers baseline behaviors.
+      - `something_wrong`: Transitions once player inspects 3 unique objects + radio; radio plays bittersweet warped lullaby with missing note, porcelain clock freezes at 3:15, Berry freezes and looks uneasy.
+      - `missing_memory`: 3 connected clues available to find across the diorama.
+      - `revelation`: All 3 clues found; connects child's departure with Berry's loneliness; climax choice ready.
+      - `chapter_complete`: Choice made; ending active with narrative resolution.
+    - Berry emotional states: `'curious'`, `'uneasy'`, `'hesitant'`, `'emotional'`, `'happy'`, `'peaceful'`.
+    - LocalStorage persistence under `food_has_feelings_mystery_chapter1_v1` with `resetChapter()` replayability.
+  - **The 3 Connected Clues:**
+    1. **The Warped Radio Melody (`radio_melody`):** Procedural Web Audio synth playing a warm major arpeggio in Phase A, transitioning in Phase B/C to a detuned, tape-wobbled melody missing its resolving note.
+    2. **The Frozen Wall Clock at 3:15 (`clock_time`, `WallClock.tsx`):** Handcrafted round porcelain wall clock on the kitchen wall with animated hour and minute hands. Ticks rhythmically in Phase A; halts at 3:15 with mechanical stillness in Phase B/C. Scratch behind glass marks tea time.
+    3. **The Counter Drawer & Handwritten Note (`drawer_note`, `BaseCabinets.tsx`, `NoteModal.tsx`):** Upper cedar drawer slides forward along Z axis on click, revealing a folded child's recipe note. Clicking reads the letter: *"Don’t forget our promise at tea time (3:15). If I’m late, play the radio song so Berry won’t be scared. We’ll always share breakfast."*
+  - **Emotional Character & Procedural Animation System (`BerryAnimation.ts`, `BerryPlaceholderModel.tsx`, `BerryBehavior.ts`):**
+    - Procedural transformations respond to `berryMood`:
+      - `uneasy`: 22Hz subtle restrained micro-shiver, head turns left and fixes on clock/drawer (`targetRotY = -0.42`), drooped crown leaves, pale blush (`0.45`), mouth becomes a small surprised 'o'.
+      - `hesitant`: Cautious head tilts, wide questioning eyes (`eyeScaleY = 1.22`), attentive leaf perch, uncertain mouth line.
+      - `emotional`: Leans forward toward player (`targetPos[2] += 0.035`), glistening tear sparkles under eyes, deep emotional breathing, warm blush.
+      - `happy`: Continuous joyful bouncing hops, spinning crown leaves, radiant smile.
+      - `peaceful`: Gentle relaxed slouch, half-lidded sleepy eyes (`0.32`), deep slow peaceful breathing.
+    - Mystery-aware dialogues when clicking Berry directly in 3D diorama.
+  - **Atmospheric Lighting Shift (`KitchenLighting.tsx`):**
+    - `something_wrong` / `missing_memory`: Passing cloud dims sun warmth (1.15 -> 0.88), pale blue-white key light (`#e2eaf5`), cool ambient tint (`#d9e3f0`) creating a palpable stillness without cheap horror or jumpscares.
+    - `revelation`: Soft nostalgic golden-rose memory hour (`#ffe3cb` key, `#fae6dc` ambient).
+    - Dual ending lighting: Radiant morning sunrise (Preserve Memory) vs serene lavender-amber dusk with warm glowing lamp (Let It Rest).
+  - **Context-Dependent Whispers (`InspectCard.tsx`):**
+    - All kitchen objects (Mug, Toaster, Kettle, Plate) display emotional memory whispers in Phase B/C reflecting the child's departure and 3:15 tea time.
+  - **Climax Decision & Dual Endings (`InspectCard.tsx`, `PostcardAlbum.tsx`):**
+    - Inspecting Berry during Revelation displays dual choices:
+      - 🌸 **Keep the promise & remember together:** Ending A — Berry hums the 3:15 lullaby without loneliness; bright golden morning dawn.
+      - 🌙 **It’s okay to let go & rest now:** Ending B — Gentle peaceful rest; no more waiting by the window; warm cozy lamplight.
+  - **Unified Kitchen Memory Journal & Clue Dossier (`PostcardAlbum.tsx`, `Header.tsx`):**
+    - Tab 1: 🔍 Chapter 1: The Song Nobody Remembers (status banner, 3 clue dossier cards with audio playback / letter reader buttons, resolution banner, and `Replay Chapter 1` button).
+    - Tab 2: 💌 Postcard Stories (the 6 collectible friend memories).
+    - Header indicator badge: `🔍 Ch. 1: X/3 Clues` / `✨ Revelation!` / `Ch. 1 Solved` opens the Mystery Dossier directly.
+  - **Procedural Web Audio API Sound Suite (`soundEffects.ts`):**
+    - `playNormalRadioMelody()`, `playWarpedRadioMelody()`, `playClockTick()`, `playClockStop()`, `playPaperRustle()`, `playMusicBoxMelody()`. Zero external audio asset dependencies.
+
 ---
 
 ## 5. Acceptance Criteria & Verification Matrix
 
-### Phase 4: The Kitchen Remembers You Acceptance Matrix
+### Core Gameplay Redesign: Chapter 1 Acceptance Matrix
 
 | # | Acceptance Criterion | Status | Verification Method |
 |---|---|---|---|
-| 1 | World memory tracks favorite spots, pairings, and returning visits | Passed | `worldMemoryStore.ts` persists to `localStorage`, tracking drops and returning visits |
-| 2 | Subtle persistent world decorations sprout when favorite spots are loved | Passed | Strawberry blossom on window sill, coaster on table, butter dish on placemat |
-| 3 | Time atmosphere system with 3 cozy states (Morning, Afternoon, Evening) | Passed | Sky, celestial body (sun vs crescent moon + stars), lighting, and lamps dynamically transition |
-| 4 | Character daily routines reflect time of day | Passed | Berry, Mug, and Toaster exhibit morning energetic, afternoon calm, and evening sleepy routines |
-| 5 | Memory Camera feature with clean framing and postcard watermark | Passed | `MemoryCamera.tsx` captures canvas with vintage paper border, watermark, and instant download |
-| 6 | Care interactions: warm objects, comfort lonely characters, clean messes | Passed | `CareInteractions.tsx` cleanable messes + `InspectCard.tsx` nurturing comfort whispers & audio purr |
-| 7 | Zero game-like numbers, XP, or stressful simulation gauges | Passed | Pure cozy picture-book feel, warm handwritten captions, no timers or failures |
-| 8 | Preserves all existing features (Drag system, Story engine, Audio, Postcard album) | Passed | All Phase 1–3B systems tested and fully functioning |
-| 9 | Production build and linter pass cleanly | Passed | `oxlint`: 0 warnings, 0 errors across 66 files; `npm run build`: Exit code 0 (2.02s) |
-| 10 | Browser verification of all new features | Passed | Verified in browser session with screenshots: morning, evening, camera, and care |
+| 1 | Deterministic phase progression (Comfort -> Something Wrong -> Missing Memory -> Revelation -> Complete) | Passed | `mysteryStore.ts` inspected and verified via inspection counts and clue discovery triggers |
+| 2 | Procedural radio melody warps with tape wobble and missing note | Passed | Audio synthesized dynamically via Web Audio API oscillators and gain nodes |
+| 3 | Wall clock animated and freezes dead at 3:15 in Phase B | Passed | `WallClock.tsx` hands animate smoothly and halt precisely at 3:15 with mechanical click sound |
+| 4 | Counter drawer slides forward and exposes child's handwritten letter | Passed | `BaseCabinets.tsx` animated slider + `NoteModal.tsx` parchment card with tea time promise |
+| 5 | Berry displays subtle micro-shivers, emotional postures, and responsive facial expressions | Passed | `BerryAnimation.ts` procedural math + `BerryPlaceholderModel.tsx` dynamic mouth and tear sparkles |
+| 6 | Kitchen diorama lighting subtly chills and shifts with chapter progression | Passed | `KitchenLighting.tsx` transitions from warm sun to pale blue overcast, golden memory rose, and dual endings |
+| 7 | Climax decision with dual branching endings (Preserve vs Let Rest) | Passed | `InspectCard.tsx` dual choice buttons trigger respective ending audio, lighting, and Berry states |
+| 8 | Unified Kitchen Memory Journal with Mystery Dossier & Clue playback | Passed | `PostcardAlbum.tsx` tabs verified in browser subagent with screenshots |
+| 9 | Replay / Reset Chapter 1 functionality | Passed | `resetChapter()` resets store and clears localStorage; verified replay button in UI |
+| 10 | Clean production build and zero linter warnings | Passed | `tsc -b && vite build` built in 489ms with 0 errors |
+
 

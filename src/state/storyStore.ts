@@ -5,6 +5,7 @@ export interface StoryStoreState {
   unlockedPostcards: Record<string, PostcardMemory>
   activeDialogueLine: StoryDialogueLine | null
   postcardAlbumOpen: boolean
+  albumTab: 'stories' | 'mystery'
   newlyUnlockedPostcard: PostcardMemory | null
 }
 
@@ -31,6 +32,7 @@ let state: StoryStoreState = {
   unlockedPostcards: loadSavedPostcards(),
   activeDialogueLine: null,
   postcardAlbumOpen: false,
+  albumTab: 'stories',
   newlyUnlockedPostcard: null,
 }
 
@@ -72,8 +74,18 @@ export const storyStore = {
     notify()
   },
 
-  openAlbum: () => {
-    state = { ...state, postcardAlbumOpen: true, newlyUnlockedPostcard: null }
+  openAlbum: (tab: 'stories' | 'mystery' = 'stories') => {
+    state = {
+      ...state,
+      postcardAlbumOpen: true,
+      albumTab: tab,
+      newlyUnlockedPostcard: null,
+    }
+    notify()
+  },
+
+  setAlbumTab: (tab: 'stories' | 'mystery') => {
+    state = { ...state, albumTab: tab }
     notify()
   },
 

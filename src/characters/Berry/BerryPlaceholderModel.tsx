@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Vector2, type Group } from 'three'
 import { materials } from '../../scene/materials'
+import { useMysteryStore } from '../../state/mysteryStore'
 
 /**
  * Lathe profile of a cute plump strawberry body:
@@ -29,6 +30,7 @@ const BERRY_BODY_PROFILE: [number, number][] = [
  * - Expressive face with natural blinking eyes and rosy blush cheeks
  */
 export function BerryPlaceholderModel() {
+  const berryMood = useMysteryStore((s) => s.berryMood)
   const leafRef = useRef<Group>(null)
   const eyesRef = useRef<Group>(null)
 
@@ -94,21 +96,54 @@ export function BerryPlaceholderModel() {
               <mesh position={[0.003, 0.004, 0.008]} material={materials.porcelain}>
                 <sphereGeometry args={[0.0035, 6, 4]} />
               </mesh>
+              {/* Emotional glistening tear droplet during revelation */}
+              {berryMood === 'emotional' && (
+                <mesh position={[0.006, -0.009, 0.007]} material={materials.porcelain}>
+                  <sphereGeometry args={[0.0028, 6, 4]} />
+                </mesh>
+              )}
             </group>
           ))}
         </group>
 
         {/* Rosy Blush Cheeks */}
         {[-0.055, 0.055].map((x) => (
-          <mesh key={x} position={[x, -0.018, -0.008]} scale={[1.2, 0.8, 0.5]} material={materials.strawberryDeep}>
+          <mesh
+            key={x}
+            position={[x, -0.018, -0.008]}
+            scale={berryMood === 'uneasy' ? [0.8, 0.6, 0.4] : [1.2, 0.8, 0.5]}
+            material={materials.strawberryDeep}
+          >
             <sphereGeometry args={[0.012, 8, 6]} />
           </mesh>
         ))}
 
-        {/* Sweet Smile (Half-torus arc) */}
-        <mesh position={[0, -0.014, 0.002]} rotation-z={Math.PI}>
-          <torusGeometry args={[0.014, 0.0022, 6, 12, Math.PI]} />
-        </mesh>
+        {/* Dynamic Mouth Expression */}
+        {berryMood === 'uneasy' ? (
+          /* Little surprised 'o' when uneasy */
+          <mesh position={[0, -0.016, 0.002]}>
+            <torusGeometry args={[0.007, 0.002, 6, 12]} />
+            <primitive object={materials.cocoa} attach="material" />
+          </mesh>
+        ) : berryMood === 'hesitant' ? (
+          /* Small hesitant line */
+          <mesh position={[0, -0.015, 0.002]} rotation-z={Math.PI * 0.95}>
+            <torusGeometry args={[0.01, 0.002, 6, 8, Math.PI * 0.7]} />
+            <primitive object={materials.cocoa} attach="material" />
+          </mesh>
+        ) : berryMood === 'peaceful' ? (
+          /* Soft gentle restful smile */
+          <mesh position={[0, -0.013, 0.002]} rotation-z={Math.PI * 0.98}>
+            <torusGeometry args={[0.012, 0.002, 6, 10, Math.PI * 0.8]} />
+            <primitive object={materials.cocoa} attach="material" />
+          </mesh>
+        ) : (
+          /* Sweet full smile */
+          <mesh position={[0, -0.014, 0.002]} rotation-z={Math.PI}>
+            <torusGeometry args={[0.014, 0.0022, 6, 12, Math.PI]} />
+            <primitive object={materials.cocoa} attach="material" />
+          </mesh>
+        )}
       </group>
 
       {/* 4. Tiny Feet */}

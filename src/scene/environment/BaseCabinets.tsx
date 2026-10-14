@@ -1,6 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import { MathUtils, type Group } from 'three'
 import { palette } from '../../config/palette'
 import { COOKTOP, COUNTER, ROOM_BOUNDS, WINDOW } from '../../config/scene'
+import { interaction } from '../../state/interactionStore'
+import { mysteryStore, useMysteryStore } from '../../state/mysteryStore'
+import { soundEffects } from '../../shared/audio/soundEffects'
 import { createCheckerMaterial, materials } from '../materials'
 import { Block } from '../primitives'
 
@@ -107,10 +112,25 @@ function CabinetFront({ unit }: { unit: CabinetUnit }) {
   if (unit.kind === 'drawers') {
     const count = 3
     const drawerH = (height - DOOR_GAP * (count - 1)) / count
+    const isInteractiveUnit = unit.from === -0.4
+
     return (
       <group position={[centerX, 0, z]}>
         {Array.from({ length: count }, (_, i) => {
           const y = DOOR_BOTTOM + drawerH / 2 + i * (drawerH + DOOR_GAP)
+          const isTopDrawer = i === count - 1
+
+          if (isInteractiveUnit && isTopDrawer) {
+            return (
+              <InteractiveTopDrawer
+                key={i}
+                width={width}
+                drawerH={drawerH}
+                y={y}
+              />
+            )
+          }
+
           return (
             <group key={i} position-y={y}>
               <Block size={[width - DOOR_GAP * 2, drawerH, DOOR_THICKNESS]} radius={0.015} material={materials.mint} />
@@ -238,3 +258,116 @@ function Cooktop() {
     </group>
   )
 }
+
+/**
+ * Interactive Counter Top Drawer:
+ * - Slides forward smoothly along Z axis when clicked/opened.
+ * - Holds the child's handwritten recipe note.
+ * - Inspecting it opens the NoteModal and discovers Clue 3: The Forgotten Promise Note.
+ */
+function InteractiveTopDrawer({
+  width,
+  drawerH,
+  y,
+}: {
+  width: number
+  drawerH: number
+  y: number
+}) {
+  const isDrawerOpen = useMysteryStore((s) => s.drawerOpen)
+  const isNoteDiscovered = useMysteryStore((s) => s.clues.drawer_note.discovered)
+  const groupRef = useRef<Group>(null)
+  const [hovered, setHovered] = useState(false)
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return
+    const targetZ = isDrawerOpen ? 0.34 : 0
+    groupRef.current.position.z = MathUtils.damp(groupRef.current.position.z, targetZ, 8, delta)
+  })
+
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation()
+    interaction.select('drawer')
+    mysteryStore.recordInspection('drawer')
+
+    if (!isDrawerOpen) {
+      mysteryStore.toggleDrawer()
+      soundEffects.playPaperRustle()
+    } else {
+      mysteryStore.openNoteModal()
+      mysteryStore.discoverClue('drawer_note')
+      soundEffects.playPaperRustle()
+    }
+  }
+
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+    setHovered(true)
+    document.body.style.cursor = 'pointer'
+  }
+
+  const handlePointerOut = () => {
+    setHovered(false)
+    document.body.style.cursor = 'default'
+  }
+
+  return (
+    <group
+      ref={groupRef}
+      position-y={y}
+      onClick={handleClick}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+    >
+      {/* Invisible interaction hit volume */}
+      <mesh visible={false} position-z={0.05}>
+        <boxGeometry args={[width - DOOR_GAP * 2 + 0.04, drawerH + 0.04, 0.15]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
+      {/* Front Face */}
+      <Block
+        size={[width - DOOR_GAP * 2, drawerH, DOOR_THICKNESS]}
+        radius={0.015}
+        material={hovered ? materials.mintDeep : materials.mint}
+      />
+
+      {/* Wooden handle */}
+      <Block
+        size={[0.22, 0.035, 0.035]}
+        radius={0.015}
+        position={[0, drawerH * 0.12, DOOR_THICKNESS / 2 + 0.02]}
+        material={hovered ? materials.wood : materials.woodDark}
+      />
+
+      {/* Sliding interior box & handwritten note when pulled out */}
+      <group position={[0, -0.01, -0.16]}>
+        {/* Drawer box interior cavity */}
+        <mesh material={materials.woodLight} position-y={-0.02}>
+          <boxGeometry args={[width - DOOR_GAP * 2 - 0.04, drawerH * 0.75, 0.32]} />
+        </mesh>
+
+        {/* The child's folded recipe note inside the drawer */}
+        <group position={[0, drawerH * 0.38, 0.06]} rotation-x={-Math.PI / 2} rotation-z={0.06}>
+          <mesh material={materials.butter} userData={{ shadow: 'receive' }}>
+            <planeGeometry args={[0.18, 0.22]} />
+          </mesh>
+          {/* Note fold line */}
+          <mesh position-y={0} material={materials.butterDeep}>
+            <planeGeometry args={[0.18, 0.005]} />
+          </mesh>
+        </group>
+
+        {/* Clue discovered indicator sparkle */}
+        {isNoteDiscovered && (
+          <group position={[0, drawerH * 0.6, 0.06]} scale={[0.03, 0.03, 0.03]}>
+            <mesh material={materials.butterDeep}>
+              <octahedronGeometry args={[1, 0]} />
+            </mesh>
+          </group>
+        )}
+      </group>
+    </group>
+  )
+}
+

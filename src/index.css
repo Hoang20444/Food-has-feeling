@@ -1553,5 +1553,484 @@ html, body, #root {
   color: var(--color-text-main);
 }
 
+/* ==========================================================================
+   Chapter 1: The Song Nobody Remembers — Mystery Styles
+   ========================================================================== */
 
+/* Clue Badge in Inspect Dock */
+.inspect-dock__clue-badge {
+  font-family: var(--font-brand);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8c5b16;
+  background: rgba(245, 210, 126, 0.45);
+  border: 1px solid var(--color-butter-deep);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  animation: pulseClue 2.4s ease-in-out infinite;
+}
 
+@keyframes pulseClue {
+  0%, 100% { transform: scale(1); opacity: 0.95; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+/* Climax Choice Buttons in Revelation Phase */
+.inspect-dock__button-row.is-climax {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.inspect-dock__action-btn.is-climax-btn {
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, #e0625a 0%, #c44a42 100%);
+  font-size: 0.88rem;
+  padding: 10px 16px;
+  box-shadow: 0 4px 14px rgba(224, 98, 90, 0.35);
+}
+
+.inspect-dock__care-btn.is-climax-btn {
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, #a2d2ff 0%, #bde0fe 100%);
+  border-color: #74aadb;
+  color: #123d64;
+  font-size: 0.88rem;
+  padding: 10px 16px;
+  box-shadow: 0 4px 14px rgba(162, 210, 255, 0.35);
+}
+
+/* Handwritten Note Modal */
+.note-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  background: rgba(45, 30, 24, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.note-modal-card {
+  background: #fdfaf3;
+  border: 2px solid #ddcfb4;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 50px rgba(50, 35, 25, 0.38);
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 26px;
+  position: relative;
+  overflow: hidden;
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.note-modal-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.note-modal-card__stamp {
+  font-family: var(--font-brand);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-strawberry-deep);
+  background: rgba(224, 98, 90, 0.12);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.note-modal-card__close {
+  background: transparent;
+  border: none;
+  font-size: 1.15rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.note-modal-card__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-main);
+}
+
+/* Weathered Parchment Note Area */
+.note-modal-card__paper {
+  background: #fffdf8;
+  border: 1.5px dashed #d8cbb2;
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  box-shadow: inset 0 0 24px rgba(230, 208, 175, 0.3);
+}
+
+.note-modal-card__doodle {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 1.2rem;
+  opacity: 0.75;
+}
+
+.note-modal-card__text {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  color: #553e2d;
+  line-height: 1.5;
+}
+
+.note-modal-card__signature {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--color-strawberry-deep);
+  margin-top: 6px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.note-modal-card__footer {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.note-modal-card__hint {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.note-modal-card__btn {
+  background: var(--color-strawberry);
+  color: #ffffff;
+  border: none;
+  font-family: var(--font-brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(224, 98, 90, 0.3);
+}
+
+.note-modal-card__btn:hover {
+  background: var(--color-strawberry-deep);
+  transform: translateY(-1px);
+}
+
+/* Header Mystery Button */
+.game-header__badge.is-mystery-btn {
+  background: linear-gradient(135deg, rgba(162, 93, 220, 0.15) 0%, rgba(224, 98, 90, 0.15) 100%);
+  border-color: rgba(162, 93, 220, 0.4);
+  color: #7b34b6;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-header__badge.is-mystery-btn:hover {
+  background: linear-gradient(135deg, rgba(162, 93, 220, 0.25) 0%, rgba(224, 98, 90, 0.25) 100%);
+  border-color: rgba(162, 93, 220, 0.7);
+  transform: translateY(-1px);
+}
+
+/* Journal Tab Bar */
+.journal-tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid #ede4d1;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.journal-tab {
+  background: #fbf7ee;
+  border: 1.5px solid #e2d7c0;
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  font-family: var(--font-brand);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #735946;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.journal-tab:hover {
+  background: #ffffff;
+  color: var(--color-strawberry-deep);
+  border-color: var(--color-strawberry);
+}
+
+.journal-tab.is-active {
+  background: var(--color-strawberry);
+  border-color: var(--color-strawberry-deep);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(224, 98, 90, 0.3);
+}
+
+/* Mystery Dossier View */
+.mystery-dossier {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 72vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.mystery-status-banner {
+  background: #fffcf6;
+  border: 1.5px solid #e5dac4;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: 0 4px 16px rgba(138, 99, 65, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mystery-status-banner__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mystery-status-banner__badge {
+  color: #ffffff;
+  font-family: var(--font-brand);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.mystery-status-banner__progress {
+  font-family: var(--font-brand);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #8c6f55;
+}
+
+.mystery-status-banner__desc {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #4a382c;
+}
+
+/* Mystery Clues Grid */
+.mystery-clues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.mystery-clue-card {
+  background: #fffdf9;
+  border: 1.5px solid #e8dec8;
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(138, 99, 65, 0.08);
+  transition: all 0.25s;
+}
+
+.mystery-clue-card.is-discovered {
+  border-color: #d1bda2;
+  background: linear-gradient(145deg, #fffcf8 0%, #fff6ea 100%);
+}
+
+.mystery-clue-card.is-hidden {
+  background: rgba(246, 237, 222, 0.6);
+  border: 1.5px dashed #d5c4a7;
+  opacity: 0.85;
+}
+
+.mystery-clue-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.mystery-clue-card__icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.mystery-clue-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mystery-clue-card__title {
+  font-family: var(--font-brand);
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #4a3426;
+  line-height: 1.25;
+}
+
+.mystery-clue-card__status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #8a6c52;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mystery-clue-card__body {
+  font-size: 0.83rem;
+  line-height: 1.4;
+  color: #5a4233;
+}
+
+.mystery-clue-card__actions {
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.mystery-clue-btn {
+  background: #fff3e6;
+  border: 1px solid #e2c09c;
+  color: #7b4b1a;
+  font-family: var(--font-brand);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.mystery-clue-btn:hover {
+  background: #ffe3c4;
+  border-color: #cb8f54;
+  transform: translateY(-1px);
+}
+
+/* Resolution Banner */
+.mystery-resolution-card {
+  background: linear-gradient(135deg, #fffcf7 0%, #fdf2f2 100%);
+  border: 2px solid var(--color-strawberry);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: 0 6px 20px rgba(224, 98, 90, 0.18);
+}
+
+.mystery-resolution-card__icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.mystery-resolution-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mystery-resolution-card__title {
+  font-family: var(--font-brand);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-strawberry-deep);
+}
+
+.mystery-resolution-card__text {
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: #4a3426;
+}
+
+/* Replay / Reset Controls */
+.mystery-replay-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.mystery-replay-btn {
+  background: transparent;
+  border: 1.5px solid #d5c4a7;
+  color: #8c6f55;
+  font-family: var(--font-brand);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mystery-replay-btn:hover {
+  border-color: var(--color-strawberry);
+  color: var(--color-strawberry-deep);
+  background: #fffcf8;
+}
+
+.mystery-confirm-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #634836;
+}
+
+.mystery-reset-confirm-btn {
+  background: #e0625a;
+  color: #ffffff;
+  border: none;
+  font-family: var(--font-brand);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mystery-reset-confirm-btn:hover {
+  background: #c44a42;
+}
+
+.mystery-reset-cancel-btn {
+  background: transparent;
+  border: 1px solid #d5c4a7;
+  color: #735946;
+  font-family: var(--font-brand);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}

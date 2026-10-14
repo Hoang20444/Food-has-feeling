@@ -586,6 +586,178 @@ export const soundEffects = {
       osc.stop(start + 0.3)
     })
   },
+
+  /** Warm, comforting major radio melody (Phase A) */
+  playNormalRadioMelody: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    // Cozy ascending and descending major arpeggio: C5, E5, G5, A5, G5, E5
+    const notes = [523.25, 659.25, 783.99, 880.0, 783.99, 659.25]
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = now + idx * 0.28
+
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, start)
+
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.linearRampToValueAtTime(0.05, start + 0.04)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.45)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + 0.48)
+    })
+  },
+
+  /** Subtle warped, altered radio melody with detuned intervals (Phase B & C) */
+  playWarpedRadioMelody: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    // Slightly detuned, minor/hesitating: C5, D#5, G5 (long), F#5 (detuned), D#5
+    const notes = [523.25, 622.25, 783.99, 730.0, 622.25]
+    const delays = [0, 0.35, 0.72, 1.35, 1.9]
+
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = now + delays[idx]
+
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, start)
+      // Subtle pitch drift down creating vintage analog tape wobble
+      osc.frequency.linearRampToValueAtTime(freq * 0.985, start + 0.5)
+
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.linearRampToValueAtTime(0.04, start + 0.05)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.6)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + 0.65)
+    })
+  },
+
+  /** Hollow wooden mechanical clock tick */
+  playClockTick: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+
+    osc.type = 'triangle'
+    osc.frequency.setValueAtTime(1400, now)
+    osc.frequency.exponentialRampToValueAtTime(300, now + 0.02)
+
+    gain.gain.setValueAtTime(0.04, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035)
+
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.04)
+  },
+
+  /** Mechanical clock stop click with sudden resonance halt */
+  playClockStop: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+
+    osc.type = 'square'
+    osc.frequency.setValueAtTime(440, now)
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.08)
+
+    gain.gain.setValueAtTime(0.07, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1)
+
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.11)
+  },
+
+  /** Gentle tactile paper rustle when opening the handwritten note */
+  playPaperRustle: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    // Filtered noise-like sweeps
+    for (let i = 0; i < 2; i++) {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = now + i * 0.07
+
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(2400 - i * 600, start)
+      osc.frequency.exponentialRampToValueAtTime(800, start + 0.08)
+
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.linearRampToValueAtTime(0.03, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.1)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + 0.11)
+    }
+  },
+
+  /** Emotional music box melody for Phase D Revelation */
+  playMusicBoxMelody: () => {
+    if (isMuted) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+
+    // Music box chimes (pure sine with bright harmonics)
+    const notes = [
+      { freq: 659.25, time: 0 }, // E5
+      { freq: 783.99, time: 0.35 }, // G5
+      { freq: 1046.5, time: 0.7 }, // C6
+      { freq: 987.77, time: 1.15 }, // B5
+      { freq: 783.99, time: 1.55 }, // G5
+      { freq: 880.0, time: 2.0 }, // A5
+      { freq: 1046.5, time: 2.6 }, // C6
+    ]
+
+    notes.forEach((n) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = now + n.time
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(n.freq, start)
+
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.linearRampToValueAtTime(0.06, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.55)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + 0.6)
+    })
+  },
 }
+
 
 
