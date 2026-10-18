@@ -1,10 +1,15 @@
-import { Suspense, useEffect, useState, useRef } from 'react'
+import { Suspense, useMemo, useRef } from 'react'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import type { Group, Mesh } from 'three'
 import { BerryPlaceholderModel } from './BerryPlaceholderModel'
 import { berryWanderAI } from './BerryWanderAI'
 import { useMysteryStore } from '../../state/mysteryStore'
+
+const GLB_URL = '/models/berry/berry.glb'
+
+// Preload the production Blender GLB asset immediately
+useGLTF.preload(GLB_URL)
 
 interface BlenderBerryModelProps {
   url: string
@@ -16,19 +21,21 @@ function BlenderBerryModel({ url }: BlenderBerryModelProps) {
   const { actions } = useAnimations(animations, groupRef)
   const berryMood = useMysteryStore((s) => s.berryMood)
 
-  // Enable shadow casting and receiving for all meshes in the Blender model
-  useEffect(() => {
-    scene.traverse((child) => {
+  // Clone scene so shadows and materials are isolated and clean
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone(true)
+    clone.traverse((child) => {
       const mesh = child as Mesh
       if (mesh.isMesh) {
         mesh.castShadow = true
         mesh.receiveShadow = true
       }
     })
+    return clone
   }, [scene])
 
-  // Auto-play matching animation clips if the 3D artist included animations in Blender
-  useEffect(() => {
+  // Auto-play matching animation clips if Blender project includes baked actions
+  useFrame(() => {
     if (!actions) return
     const wander = berryWanderAI.getState()
     const actionNames = Object.keys(actions)
@@ -48,37 +55,30 @@ function BlenderBerryModel({ url }: BlenderBerryModelProps) {
     }
 
     const currentAction = actions[targetClipName]
-    if (currentAction) {
+    if (currentAction && !currentAction.isRunning()) {
       currentAction.reset().fadeIn(0.2).play()
-      return () => {
-        currentAction.fadeOut(0.2)
-      }
     }
-  }, [actions, berryMood])
+  })
 
   // Procedural limb animation (pitter-patter footsteps & emotional arm gestures)
-  // if no baked animation clip is actively taking over the limbs
   useFrame((state) => {
-    const hasActiveClips = actions && Object.values(actions).some((a) => a?.isRunning())
-    if (hasActiveClips) return
-
     const wander = berryWanderAI.getState()
     const isWalking = wander.isWalking
     const step = wander.stepCycle
     const t = state.clock.elapsedTime
 
-    const footL = scene.getObjectByName('Berry_Foot_L')
-    const footR = scene.getObjectByName('Berry_Foot_R')
-    const armL = scene.getObjectByName('Berry_Arm_L')
-    const armR = scene.getObjectByName('Berry_Arm_R')
+    const footL = clonedScene.getObjectByName('Berry_Foot_L')
+    const footR = clonedScene.getObjectByName('Berry_Foot_R')
+    const armL = clonedScene.getObjectByName('Berry_Arm_L')
+    const armR = clonedScene.getObjectByName('Berry_Arm_R')
 
     if (footL && footR) {
       if (isWalking) {
-        footL.position.y = 0.012 + Math.max(0, Math.sin(step)) * 0.016
-        footR.position.y = 0.012 + Math.max(0, Math.sin(step + Math.PI)) * 0.016
+        footL.position.y = 0.010 + Math.max(0, Math.sin(step)) * 0.016
+        footR.position.y = 0.010 + Math.max(0, Math.sin(step + Math.PI)) * 0.016
       } else {
-        footL.position.y = 0.012
-        footR.position.y = 0.012
+        footL.position.y = 0.010
+        footR.position.y = 0.010
       }
     }
 
@@ -109,53 +109,19 @@ function BlenderBerryModel({ url }: BlenderBerryModelProps) {
 
   return (
     <group ref={groupRef}>
-      <primitive object={scene} />
+      <primitive object={clonedScene} />
     </group>
   )
 }
 
 /**
- * Character renderer with automatic Blender GLB model support.
- *
- * Checks for production asset at `/models/berry/berry.glb`.
- * While in development (or when no Blender GLB is present), gracefully
- * falls back to the handcrafted procedural low-poly model.
- * Automatically checks for updates when switching back from Blender to the browser.
+ * Character renderer with direct production Blender GLB asset.
+ * Seamlessly loads `/models/berry/berry.glb` with procedural fallback while loading.
  */
 export function BerryGLBLoader() {
-  const [hasGlb, setHasGlb] = useState<boolean>(false)
-  const [checked, setChecked] = useState<boolean>(false)
-
-  const checkGlbAsset = () => {
-    fetch('/models/berry/berry.glb', { method: 'HEAD' })
-      .then((res) => {
-        const contentType = res.headers.get('content-type') || ''
-        const exists = res.ok && !contentType.includes('text/html')
-        setHasGlb(exists)
-        setChecked(true)
-      })
-      .catch(() => {
-        setHasGlb(false)
-        setChecked(true)
-      })
-  }
-
-  useEffect(() => {
-    checkGlbAsset()
-
-    window.addEventListener('focus', checkGlbAsset)
-    return () => {
-      window.removeEventListener('focus', checkGlbAsset)
-    }
-  }, [])
-
-  if (!checked || !hasGlb) {
-    return <BerryPlaceholderModel />
-  }
-
   return (
     <Suspense fallback={<BerryPlaceholderModel />}>
-      <BlenderBerryModel url="/models/berry/berry.glb" />
+      <BlenderBerryModel url={GLB_URL} />
     </Suspense>
   )
 }

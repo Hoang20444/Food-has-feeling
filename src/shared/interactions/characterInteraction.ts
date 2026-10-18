@@ -19,7 +19,7 @@ interface CharactersGlobalState {
 
 const defaultCharacterState = (id: CharacterId): CharacterItemState => ({
   id,
-  emergencePhase: 'hidden',
+  emergencePhase: id === 'berry' ? 'settled' : 'hidden',
   interactionCount: 0,
   activeReaction: 'none',
   reactionStartTime: 0,

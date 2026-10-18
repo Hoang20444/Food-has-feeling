@@ -27,7 +27,7 @@ const initialState: KitchenState = {
   kettleHeating: false,
   mugWarmed: false,
   plateWobbled: false,
-  kitchenAwakened: false,
+  kitchenAwakened: true,
   awakenedNoticeVisible: false,
   whisperIndices: {
     mug: 0,

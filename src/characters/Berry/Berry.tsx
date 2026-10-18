@@ -18,9 +18,9 @@ import { BerryGLBLoader } from './BerryGLBLoader'
 import { berryWanderAI } from './BerryWanderAI'
 
 const INITIAL_TRANSFORM: BerryTransform = {
-  position: [0.33, 2.42, -2.95],
+  position: [0.16, 2.435, -2.80],
   rotation: [0, 0.35, 0],
-  scale: [0.001, 0.001, 0.001],
+  scale: [1, 1, 1],
   leafRotation: [0, 0, 0],
   eyeScaleY: 1.0,
   blushIntensity: 0.8,
