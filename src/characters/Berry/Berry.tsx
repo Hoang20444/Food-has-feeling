@@ -14,7 +14,7 @@ import { soundEffects } from '../../shared/audio/soundEffects'
 import { characterInteraction, useCharacterState } from '../../shared/interactions/characterInteraction'
 import { computeBerryTransforms, type BerryTransform } from './BerryAnimation'
 import { BerryBehavior } from './BerryBehavior'
-import { BerryGLBLoader } from './BerryGLBLoader'
+import { BerryGLB } from './BerryGLB'
 import { berryWanderAI } from './BerryWanderAI'
 
 const INITIAL_TRANSFORM: BerryTransform = {
@@ -222,8 +222,8 @@ export function Berry() {
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
     >
-      {/* 3D Character Renderer (with Blender GLB support and procedural fallback) */}
-      <BerryGLBLoader />
+      {/* 3D Character Renderer (Blender GLB model with procedural fallback) */}
+      <BerryGLB />
 
       {/* Floating magical sparkles on touch/grab */}
       <TouchSparkles active={isGrabbed} radius={0.25} />
