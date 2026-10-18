@@ -4,7 +4,7 @@ import type { Group } from 'three'
 import { ROOM_BOUNDS } from '../../config/scene'
 import { materials } from '../materials'
 import { Block } from '../primitives'
-import { useKitchenState } from '../../state/kitchenState'
+import { kitchenState, useKitchenState } from '../../state/kitchenState'
 
 const WALL_Z = ROOM_BOUNDS.minZ
 
@@ -116,6 +116,23 @@ function PantryShelf() {
             key={j.x}
             ref={isStrawberryJar ? rustleJarRef : undefined}
             position={[j.x, 0.025, depth / 2]}
+            onClick={(e) => {
+              if (isStrawberryJar) {
+                e.stopPropagation()
+                kitchenState.triggerAwakening()
+              }
+            }}
+            onPointerOver={(e) => {
+              if (isStrawberryJar) {
+                e.stopPropagation()
+                document.body.style.cursor = 'pointer'
+              }
+            }}
+            onPointerOut={() => {
+              if (isStrawberryJar) {
+                document.body.style.cursor = 'default'
+              }
+            }}
           >
             <mesh position-y={j.h / 2} material={materials.porcelain}>
               <cylinderGeometry args={[j.r, j.r, j.h, 14]} />
