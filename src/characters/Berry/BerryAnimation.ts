@@ -2,6 +2,7 @@ import { MathUtils } from 'three'
 import type { CharacterReaction, EmergencePhase } from '../../shared/interactions/characterTypes'
 import type { TimeAtmosphere } from '../../state/timeAtmosphereStore'
 import type { BerryEmotionalState } from '../../state/mysteryStore'
+import type { BerryWanderState } from './BerryWanderAI'
 
 export interface BerryTransform {
   position: [number, number, number]
@@ -10,6 +11,7 @@ export interface BerryTransform {
   leafRotation: [number, number, number]
   eyeScaleY: number
   blushIntensity: number
+  stepCycle: number
 }
 
 // World anchor coordinates for the shelf near the strawberry jar
@@ -21,7 +23,7 @@ const SETTLED_POS: [number, number, number] = [0.16, 2.435, -2.80]
 
 /**
  * Calculates smooth, non-conflicting transform values for Berry
- * based on elapsed time, emergence phase, daily routine, mystery mood, and active reaction.
+ * based on elapsed time, emergence phase, autonomous wander AI, daily routine, mystery mood, and active reaction.
  */
 export function computeBerryTransforms(
   time: number,
@@ -35,6 +37,7 @@ export function computeBerryTransforms(
   timeAtmosphere: TimeAtmosphere = 'morning',
   isFavoriteSpot = false,
   berryMood: BerryEmotionalState = 'curious',
+  wanderState?: BerryWanderState,
 ): BerryTransform {
   const next: BerryTransform = {
     position: [...current.position],
@@ -43,11 +46,12 @@ export function computeBerryTransforms(
     leafRotation: [...current.leafRotation],
     eyeScaleY: 1,
     blushIntensity: 0.8,
+    stepCycle: wanderState?.stepCycle || 0,
   }
 
-  // --- 1. Target Position and Base Orientation based on Emergence Phase & Daily Routine ---
-  let targetPos: [number, number, number] = baseSettledPos
-  let targetRotY = 0.35 // Looking slightly into room/camera
+  // --- 1. Target Position and Base Orientation based on Emergence Phase & Autonomous Wander AI ---
+  let targetPos: [number, number, number] = wanderState ? wanderState.position : baseSettledPos
+  let targetRotY = wanderState ? wanderState.facingRotY : 0.35
 
   if (phase === 'hidden') {
     targetPos = HIDING_POS
@@ -63,45 +67,59 @@ export function computeBerryTransforms(
   } else if (phase === 'looking_around') {
     targetPos = baseSettledPos
     targetRotY = Math.sin(time * 1.5) * 0.5
-  } else {
-    // Settled idle state influenced by daily routine, favorite spot, and mystery chapter mood
-    targetPos = baseSettledPos
+  } else if (wanderState) {
+    // --- AUTONOMOUS LIVING LOCOMOTION & EMOTIONAL POSTURES ---
+    if (wanderState.activity === 'walking') {
+      const walkStep = wanderState.stepCycle
+      const walkHop = Math.abs(Math.sin(walkStep)) * 0.024
+      targetPos = [wanderState.position[0], wanderState.position[1] + walkHop, wanderState.position[2]]
+      targetRotY = wanderState.facingRotY
+      // Side-to-side waddling tilt
+      next.rotation[2] += Math.sin(walkStep) * 0.08
+      next.leafRotation[2] += Math.sin(walkStep) * 0.12
+    } else if (wanderState.activity === 'hopping') {
+      const hopHeight = Math.abs(Math.sin(wanderState.stepCycle * 1.5)) * 0.045
+      targetPos = [wanderState.position[0], wanderState.position[1] + hopHeight, wanderState.position[2]]
+      targetRotY = wanderState.facingRotY + Math.sin(wanderState.stepCycle * 2) * 0.12
+    } else if (wanderState.activity === 'resting') {
+      targetPos = wanderState.position
+      targetRotY = wanderState.facingRotY
+      next.scale[1] *= 0.88 // cozy squished loaf
+      next.scale[0] *= 1.1
+      next.scale[2] *= 1.1
+      next.eyeScaleY = 0.12
+    } else if (wanderState.activity === 'looking_around') {
+      targetPos = wanderState.position
+      targetRotY = wanderState.facingRotY + Math.sin(time * 1.8) * 0.4
+    } else {
+      targetPos = wanderState.position
+      targetRotY = wanderState.facingRotY + Math.sin(time * 0.8) * 0.08
+    }
 
+    // Emotion Overrides
     if (berryMood === 'uneasy') {
-      // Freezes and stares toward the clock and counter drawer
-      targetRotY = -0.42
-      next.blushIntensity = 0.45
+      // Freezes and stares toward the clock and counter drawer with prominent nervous shiver
+      targetRotY = -0.42 + Math.sin(time * 4) * 0.1
+      next.blushIntensity = 0.35
     } else if (berryMood === 'hesitant') {
-      // Looks uncertainly between player and diorama
-      targetRotY = 0.15 + Math.sin(time * 1.5) * 0.15
-      next.blushIntensity = 0.75
+      targetRotY = 0.15 + Math.sin(time * 1.5) * 0.25
+      next.blushIntensity = 0.7
     } else if (berryMood === 'emotional') {
-      // Leans forward slightly toward the player in revelation
-      targetPos = [baseSettledPos[0], baseSettledPos[1], baseSettledPos[2] + 0.035]
-      targetRotY = 0.38 + Math.sin(time * 0.8) * 0.03
+      targetPos = [targetPos[0], targetPos[1], targetPos[2] + 0.04]
+      targetRotY = 0.38 + Math.sin(time * 0.8) * 0.04
       next.blushIntensity = 1.0
     } else if (berryMood === 'happy') {
-      targetRotY = 0.35 + Math.sin(time * 3) * 0.08
       next.blushIntensity = 1.0
     } else if (berryMood === 'peaceful') {
-      targetRotY = 0.2 + Math.sin(time * 0.4) * 0.03
       next.blushIntensity = 0.7
-    } else if (isFavoriteSpot && timeAtmosphere !== 'evening') {
-      // Gazing affectionately toward the window and sun
-      targetRotY = -0.25 + Math.sin(time * 0.5) * 0.04
-      next.blushIntensity = 1.0
-    } else if (timeAtmosphere === 'evening') {
-      // Sleepy cozy resting pose
-      targetRotY = 0.2 + Math.sin(time * 0.4) * 0.03
-    } else {
-      targetRotY = 0.35 + Math.sin(time * 0.7) * 0.04
     }
   }
 
-  // Smoothly damp position towards target
-  next.position[0] = MathUtils.damp(current.position[0], targetPos[0], 6, delta)
-  next.position[1] = MathUtils.damp(current.position[1], targetPos[1], 8, delta)
-  next.position[2] = MathUtils.damp(current.position[2], targetPos[2], 6, delta)
+  // Smoothly damp position towards live target
+  const posDampSpeed = wanderState?.isWalking ? 14 : 7
+  next.position[0] = MathUtils.damp(current.position[0], targetPos[0], posDampSpeed, delta)
+  next.position[1] = MathUtils.damp(current.position[1], targetPos[1], 14, delta)
+  next.position[2] = MathUtils.damp(current.position[2], targetPos[2], posDampSpeed, delta)
 
   // --- 2. Idle Breathing & Subtle Head Tilts (when not hidden) ---
   if (phase !== 'hidden') {
@@ -126,20 +144,29 @@ export function computeBerryTransforms(
     const breathXZ = 1 - Math.sin(time * breathSpeed) * (breathAmp * 0.5)
     next.scale = [breathXZ, breathY, breathXZ]
 
-    // Emotional adjustments to posture and subtle micro-movements
+    // Emotional adjustments to posture and dramatic body language
     if (berryMood === 'uneasy') {
-      // Subtle nervous shiver (very lifelike, restrained)
-      const shiver = Math.sin(time * 22) * 0.0025
+      // Clear, readable nervous trembling and scared crouch
+      const shiver = Math.sin(time * 28) * 0.012
       next.position[0] += shiver
-      next.scale[0] += shiver * 0.5
-      next.scale[2] += shiver * 0.5
+      next.position[1] += Math.abs(Math.sin(time * 24)) * 0.008
+      next.scale[0] *= 1.15
+      next.scale[1] *= 0.82 // visibly hunched in fear
+      next.scale[2] *= 1.15
     } else if (berryMood === 'happy') {
-      // Continuous gentle happy bounce
-      const happyBounce = Math.abs(Math.sin(time * 4)) * 0.016
+      // Big joyful bouncy hops
+      const happyBounce = Math.abs(Math.sin(time * 5)) * 0.038
       next.position[1] += happyBounce
+      next.scale[1] *= 1.08
     } else if (berryMood === 'peaceful') {
-      // Cozy slight slouch
-      next.scale[1] *= 0.94
+      // Cozy sleeping loaf on the surface
+      next.scale[1] *= 0.8
+      next.scale[0] *= 1.18
+      next.scale[2] *= 1.18
+    }
+
+    if (isFavoriteSpot && timeAtmosphere !== 'evening') {
+      next.blushIntensity = 1.0
     }
 
     // Player cursor presence: gentle head bias tracking cursor

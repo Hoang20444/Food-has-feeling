@@ -1,8 +1,9 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Vector2, type Group } from 'three'
+import { Vector2, type Group, type Mesh } from 'three'
 import { materials } from '../../scene/materials'
 import { useMysteryStore } from '../../state/mysteryStore'
+import { berryWanderAI } from './BerryWanderAI'
 
 /**
  * Lathe profile of a cute plump strawberry body:
@@ -23,16 +24,20 @@ const BERRY_BODY_PROFILE: [number, number][] = [
 /**
  * Handcrafted low-poly procedural placeholder for Berry.
  *
- * Clearly identified temporary model matching the indie diorama art direction:
- * - Rounded plump strawberry body
- * - 5 low-poly crown leaves with a stem
- * - Tiny arms and feet
- * - Expressive face with natural blinking eyes and rosy blush cheeks
+ * Full animated living food friend:
+ * - Walking footsteps and waddling arm swings
+ * - Emotional arm gestures (scared tremble vs happy wave)
+ * - Expressive face with blinking and mood mouth shapes
+ * - Leaf crown and stem
  */
 export function BerryPlaceholderModel() {
   const berryMood = useMysteryStore((s) => s.berryMood)
   const leafRef = useRef<Group>(null)
   const eyesRef = useRef<Group>(null)
+  const leftFootRef = useRef<Mesh>(null)
+  const rightFootRef = useRef<Mesh>(null)
+  const leftArmRef = useRef<Mesh>(null)
+  const rightArmRef = useRef<Mesh>(null)
 
   const bodyPoints = useMemo(
     () => BERRY_BODY_PROFILE.map(([x, y]) => new Vector2(x, y)),
@@ -49,15 +54,69 @@ export function BerryPlaceholderModel() {
 
   useFrame((state) => {
     const t = state.clock.elapsedTime
+    const wander = berryWanderAI.getState()
+    const isWalking = wander.isWalking
+    const step = wander.stepCycle
+
+    // Leaf crown animation
     if (leafRef.current) {
-      leafRef.current.rotation.x = Math.sin(t * 1.6) * 0.04
-      leafRef.current.rotation.y = Math.sin(t * 1.2) * 0.06
-      leafRef.current.rotation.z = Math.sin(t * 1.8) * 0.05
+      if (berryMood === 'happy') {
+        leafRef.current.rotation.y = t * 6
+      } else {
+        leafRef.current.rotation.x = Math.sin(t * 1.6) * 0.04
+        leafRef.current.rotation.y = Math.sin(t * 1.2) * 0.06
+        leafRef.current.rotation.z = Math.sin(t * 1.8) * 0.05
+      }
     }
+
+    // Blinking eyes
     if (eyesRef.current) {
       const blinkCycle = t % 3.8
       const eyeScaleY = blinkCycle < 0.14 ? 0.08 : 1.0
       eyesRef.current.scale.y = eyeScaleY
+    }
+
+    // Animated footsteps
+    if (leftFootRef.current && rightFootRef.current) {
+      if (isWalking) {
+        leftFootRef.current.position.z = 0.02 + Math.sin(step) * 0.028
+        leftFootRef.current.position.y = 0.012 + Math.max(0, Math.sin(step) * 0.016)
+        rightFootRef.current.position.z = 0.02 - Math.sin(step) * 0.028
+        rightFootRef.current.position.y = 0.012 + Math.max(0, -Math.sin(step) * 0.016)
+      } else {
+        leftFootRef.current.position.z = 0.02
+        leftFootRef.current.position.y = 0.012
+        rightFootRef.current.position.z = 0.02
+        rightFootRef.current.position.y = 0.012
+      }
+    }
+
+    // Animated arm gestures
+    if (leftArmRef.current && rightArmRef.current) {
+      if (berryMood === 'uneasy') {
+        // Scared: arms held tight to tummy with nervous trembling
+        leftArmRef.current.rotation.z = 0.75
+        leftArmRef.current.rotation.x = 0.35 + Math.sin(t * 28) * 0.08
+        rightArmRef.current.rotation.z = -0.75
+        rightArmRef.current.rotation.x = 0.35 - Math.sin(t * 28) * 0.08
+      } else if (berryMood === 'happy') {
+        // Happy: arms raised high waving excitedly!
+        leftArmRef.current.rotation.z = 1.3 + Math.sin(t * 8) * 0.2
+        leftArmRef.current.rotation.x = 0.2
+        rightArmRef.current.rotation.z = -1.3 - Math.sin(t * 8) * 0.2
+        rightArmRef.current.rotation.x = 0.2
+      } else if (isWalking) {
+        // Walking: rhythmic waddling arm swings
+        leftArmRef.current.rotation.z = 0.35
+        leftArmRef.current.rotation.x = 0.2 + Math.sin(step) * 0.45
+        rightArmRef.current.rotation.z = -0.35
+        rightArmRef.current.rotation.x = 0.2 - Math.sin(step) * 0.45
+      } else {
+        leftArmRef.current.rotation.z = 0.35
+        leftArmRef.current.rotation.x = 0.2
+        rightArmRef.current.rotation.z = -0.35
+        rightArmRef.current.rotation.x = 0.2
+      }
     }
   })
 
@@ -85,7 +144,7 @@ export function BerryPlaceholderModel() {
 
       {/* 3. Expressive Face (Facing forward +Z) */}
       <group position={[0, 0.145, 0.092]}>
-        {/* Left & Right Eyes (support blinking via eyesRef) */}
+        {/* Left & Right Eyes */}
         <group ref={eyesRef}>
           {[-0.034, 0.034].map((x) => (
             <group key={x} position={[x, 0, 0]}>
@@ -146,26 +205,45 @@ export function BerryPlaceholderModel() {
         )}
       </group>
 
-      {/* 4. Tiny Feet */}
-      {[-0.032, 0.032].map((x) => (
-        <mesh key={x} position={[x, 0.012, 0.02]} scale={[1, 0.7, 1.4]} material={materials.strawberryDeep}>
-          <sphereGeometry args={[0.018, 10, 8]} />
-        </mesh>
-      ))}
+      {/* 4. Animated Tiny Feet */}
+      <mesh
+        ref={leftFootRef}
+        position={[-0.032, 0.012, 0.02]}
+        scale={[1, 0.7, 1.4]}
+        material={materials.strawberryDeep}
+      >
+        <sphereGeometry args={[0.018, 10, 8]} />
+      </mesh>
+      <mesh
+        ref={rightFootRef}
+        position={[0.032, 0.012, 0.02]}
+        scale={[1, 0.7, 1.4]}
+        material={materials.strawberryDeep}
+      >
+        <sphereGeometry args={[0.018, 10, 8]} />
+      </mesh>
 
-      {/* 5. Tiny Arms (shy resting at sides) */}
-      {[-0.092, 0.092].map((x, idx) => (
-        <mesh
-          key={x}
-          position={[x, 0.11, 0.02]}
-          rotation-z={idx === 0 ? 0.35 : -0.35}
-          rotation-x={0.2}
-          scale={[0.7, 1.2, 0.7]}
-          material={materials.strawberry}
-        >
-          <sphereGeometry args={[0.018, 8, 6]} />
-        </mesh>
-      ))}
+      {/* 5. Animated Tiny Arms */}
+      <mesh
+        ref={leftArmRef}
+        position={[-0.092, 0.11, 0.02]}
+        rotation-z={0.35}
+        rotation-x={0.2}
+        scale={[0.7, 1.2, 0.7]}
+        material={materials.strawberry}
+      >
+        <sphereGeometry args={[0.018, 8, 6]} />
+      </mesh>
+      <mesh
+        ref={rightArmRef}
+        position={[0.092, 0.11, 0.02]}
+        rotation-z={-0.35}
+        rotation-x={0.2}
+        scale={[0.7, 1.2, 0.7]}
+        material={materials.strawberry}
+      >
+        <sphereGeometry args={[0.018, 8, 6]} />
+      </mesh>
 
       {/* 6. Leaf Crown & Stem atop head */}
       <group ref={leafRef} position={[0, 0.224, 0]}>

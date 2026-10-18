@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { soundEffects } from '../../shared/audio/soundEffects'
+import { berryWanderAI } from '../../characters/Berry/BerryWanderAI'
 import { useKitchenState } from '../../state/kitchenState'
 import { useMysteryStore } from '../../state/mysteryStore'
 import { storyStore, useStoryStore } from '../../state/storyStore'
@@ -14,6 +15,7 @@ const TIME_ICONS: Record<TimeAtmosphere, string> = {
 
 export function Header() {
   const [muted, setMuted] = useState(() => soundEffects.getMuted())
+  const [, setTick] = useState(0)
   const awakened = useKitchenState((s) => s.kitchenAwakened)
   const unlockedPostcards = useStoryStore((s) => s.unlockedPostcards)
   const unlockedCount = Object.keys(unlockedPostcards).length
@@ -24,6 +26,14 @@ export function Header() {
 
   const timeAtmosphere = useTimeAtmosphere((s) => s.current)
   const welcomeBackMessage = useWorldMemoryStore((s) => s.welcomeBackMessage)
+
+  // Periodic tick for live Berry activity tracking
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((t) => t + 1)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   const toggleSound = () => {
     const next = soundEffects.toggleMute()
@@ -42,6 +52,8 @@ export function Header() {
     soundEffects.playGentleTouch()
     timeAtmosphereStore.setCameraMode(true)
   }
+
+  const wander = berryWanderAI.getState()
 
   return (
     <header className="game-header">
@@ -113,6 +125,15 @@ export function Header() {
           {muted ? '🔇' : '🔊'}
         </button>
       </div>
+
+      {/* Live Berry Emotion & Activity Chip */}
+      {awakened && (
+        <div className={`game-header__berry-pill is-${mysteryPhase}`}>
+          <span className="berry-pill__emoji">{wander.statusEmoji}</span>
+          <span className="berry-pill__text">Berry: “{wander.statusText}”</span>
+        </div>
+      )}
+
       <p className="game-header__tagline">
         {welcomeBackMessage ||
           (awakened

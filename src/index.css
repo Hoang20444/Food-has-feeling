@@ -153,9 +153,41 @@ html, body, #root {
   transition: transform 0.15s ease, background 0.15s ease;
 }
 
-.game-header__sound-btn:hover {
-  background: rgba(74, 51, 41, 0.12);
-  transform: scale(1.08);
+.game-header__berry-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 247, 240, 0.95);
+  border: 1.5px solid #ded3be;
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(138, 99, 65, 0.1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-header__berry-pill.is-something_wrong,
+.game-header__berry-pill.is-missing_memory {
+  background: rgba(254, 243, 199, 0.95);
+  border-color: #d97706;
+}
+
+.game-header__berry-pill.is-revelation {
+  background: rgba(254, 226, 226, 0.95);
+  border-color: var(--color-strawberry);
+}
+
+.berry-pill__emoji {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.berry-pill__text {
+  font-family: var(--font-brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #553e2d;
+  letter-spacing: -0.01em;
 }
 
 .game-header__tagline {
@@ -550,6 +582,70 @@ html, body, #root {
   }
   50% {
     transform: translateY(-5px);
+  }
+}
+
+/* Berry Floating 3D Living Mood & Activity Bubble */
+.berry-living-mood {
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 252, 247, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid #ded3be;
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  box-shadow: 0 4px 14px rgba(138, 99, 65, 0.14);
+  white-space: nowrap;
+  animation: gentleBob 2.5s ease-in-out infinite;
+  transition: all 0.25s ease;
+}
+
+.berry-living-mood.is-uneasy {
+  border-color: #d69e2e;
+  background: rgba(255, 250, 235, 0.96);
+  box-shadow: 0 4px 14px rgba(214, 158, 46, 0.3);
+  animation: gentleTremble 0.2s ease-in-out infinite alternate;
+}
+
+.berry-living-mood.is-happy {
+  border-color: var(--color-strawberry);
+  background: rgba(255, 245, 245, 0.96);
+  box-shadow: 0 4px 14px rgba(224, 98, 90, 0.3);
+}
+
+.berry-living-mood.is-emotional {
+  border-color: #b854a6;
+  background: rgba(254, 246, 255, 0.96);
+  box-shadow: 0 4px 14px rgba(184, 84, 166, 0.3);
+}
+
+.berry-living-mood.is-peaceful {
+  border-color: #8fa3e8;
+  background: rgba(245, 247, 255, 0.96);
+}
+
+.berry-living-mood__emoji {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.berry-living-mood__text {
+  font-family: var(--font-brand);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #553e2d;
+  letter-spacing: -0.01em;
+}
+
+@keyframes gentleTremble {
+  from {
+    transform: translateX(-1px) translateY(0);
+  }
+  to {
+    transform: translateX(1px) translateY(-1px);
   }
 }
 

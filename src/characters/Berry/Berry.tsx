@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { MathUtils, type Group } from 'three'
 import { useKitchenState } from '../../state/kitchenState'
 import { interaction } from '../../state/interactionStore'
 import { useMysteryStore } from '../../state/mysteryStore'
-import { useObjectPosition } from '../../state/objectPositionsStore'
+import { objectPositionsStore, useObjectPosition } from '../../state/objectPositionsStore'
 import { useTimeAtmosphere } from '../../state/timeAtmosphereStore'
 import { useWorldMemoryStore } from '../../state/worldMemoryStore'
 import { grabSystem, useGrabState } from '../../interaction/GrabSystem'
@@ -15,6 +15,7 @@ import { characterInteraction, useCharacterState } from '../../shared/interactio
 import { computeBerryTransforms, type BerryTransform } from './BerryAnimation'
 import { BerryBehavior } from './BerryBehavior'
 import { BerryGLBLoader } from './BerryGLBLoader'
+import { berryWanderAI } from './BerryWanderAI'
 
 const INITIAL_TRANSFORM: BerryTransform = {
   position: [0.33, 2.42, -2.95],
@@ -23,13 +24,17 @@ const INITIAL_TRANSFORM: BerryTransform = {
   leafRotation: [0, 0, 0],
   eyeScaleY: 1.0,
   blushIntensity: 0.8,
+  stepCycle: 0,
 }
 
 /**
  * Berry — The First Living Food Friend.
  *
- * Integrates procedural animation, daily routines (Morning, Afternoon, Evening),
- * favorite spot recognition, mystery chapter emotions, behavior state machine, and emotional dialogue.
+ * Fully autonomous living creature with:
+ * - Free autonomous roaming across surfaces (shelf, counter, table, rug)
+ * - Pitter-patter footsteps & waddling walk cycles
+ * - Dramatic, readable emotional states (uneasy shivering, joyful hops, cozy naps)
+ * - Floating 3D live mood and activity thoughts over head
  */
 export function Berry() {
   const isKitchenAwakened = useKitchenState((s) => s.kitchenAwakened)
@@ -39,6 +44,7 @@ export function Berry() {
 
   const groupRef = useRef<Group>(null)
   const transformRef = useRef<BerryTransform>({ ...INITIAL_TRANSFORM })
+  const [, setTick] = useState(0)
 
   const berryPosState = useObjectPosition((s) => s.berry)
   const isGrabbed = useGrabState((s) => s.grabbedId === 'berry')
@@ -56,6 +62,21 @@ export function Berry() {
     }
   }, [isKitchenAwakened, berryState.emergencePhase])
 
+  // Sync emergence settled state with autonomous wander AI
+  useEffect(() => {
+    if (berryState.emergencePhase === 'settled') {
+      berryWanderAI.setSettled(true)
+    }
+  }, [berryState.emergencePhase])
+
+  // Periodic UI refresh for status badge
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((t) => t + 1)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
   // Reset cursor if unmounted while hovered
   useEffect(() => {
     return () => {
@@ -72,6 +93,15 @@ export function Berry() {
       ? (performance.now() - berryState.reactionStartTime) / 1000
       : 0
 
+    // Update autonomous wandering AI
+    berryWanderAI.update(delta, isGrabbed, berryMood, berryState.isHovered)
+    const wanderState = berryWanderAI.getState()
+
+    // Periodically sync live roam position to store so proximity triggers work naturally
+    if (wanderState.isWalking && Math.floor(t * 3) !== Math.floor((t - delta) * 3)) {
+      objectPositionsStore.setPosition('berry', wanderState.position, 'free_roam')
+    }
+
     // Compute restrained, smooth procedural animations with subtle cursor presence, daily routines, and mystery chapter mood
     transformRef.current = computeBerryTransforms(
       t,
@@ -85,6 +115,7 @@ export function Berry() {
       timeAtmosphere,
       isFavoriteWindowSpot,
       berryMood,
+      wanderState,
     )
 
     const tr = transformRef.current
@@ -203,10 +234,25 @@ export function Berry() {
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
+      {/* Floating 3D Living Mood & Activity Bubble */}
+      {berryState.emergencePhase === 'settled' && !berryState.dialogueVisible && (
+        <Html
+          position={[0, 0.38, 0]}
+          center
+          zIndexRange={[20, 0]}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className={`berry-living-mood is-${berryMood}`} role="status">
+            <span className="berry-living-mood__emoji">{berryWanderAI.getState().statusEmoji}</span>
+            <span className="berry-living-mood__text">{berryWanderAI.getState().statusText}</span>
+          </div>
+        </Html>
+      )}
+
       {/* Floating Emotional Dialogue Bubble in 3D */}
       {berryState.dialogueVisible && berryState.dialogue && (
         <Html
-          position={[0, 0.32, 0]}
+          position={[0, 0.34, 0]}
           center
           zIndexRange={[25, 0]}
           style={{ pointerEvents: 'none' }}

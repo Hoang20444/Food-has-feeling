@@ -156,9 +156,12 @@ export const mysteryStore = {
     // If still in comfort phase, check if we should trigger Phase B (Something Is Wrong)
     if (state.phase === 'comfort') {
       const uniqueCount = Object.keys(nextInspected).length
-      const hasCheckedRadio = Boolean(nextInspected['radio'])
+      const hasCheckedMysteryObject =
+        Boolean(nextInspected['radio']) ||
+        Boolean(nextInspected['clock']) ||
+        Boolean(nextInspected['drawer'])
 
-      if (uniqueCount >= 3 && hasCheckedRadio) {
+      if (hasCheckedMysteryObject || uniqueCount >= 2) {
         nextPhase = 'something_wrong'
         nextBerryMood = 'uneasy'
         nextClockStopped = true
